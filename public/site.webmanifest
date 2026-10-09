@@ -1,0 +1,30 @@
+{
+	"id": "/",
+	"name": "Kaspi Bot",
+	"short_name": "Kaspi Bot",
+	"description": "Управление магазинами, ценами и заказами Kaspi.kz.",
+	"start_url": "/",
+	"scope": "/",
+	"lang": "ru-RU",
+	"display": "standalone",
+	"display_override": ["standalone", "minimal-ui", "browser"],
+	"theme_color": "#050505",
+	"background_color": "#050505",
+	"icons": [
+		{ "src": "/favicon.ico", "type": "image/x-icon", "sizes": "16x16 32x32" },
+		{ "src": "/icons/icon-192.webp", "type": "image/webp", "sizes": "192x192" },
+		{ "src": "/icons/icon-512.webp", "type": "image/webp", "sizes": "512x512" },
+		{
+			"src": "/icons/icon-192-maskable.webp",
+			"type": "image/webp",
+			"sizes": "192x192",
+			"purpose": "maskable"
+		},
+		{
+			"src": "/icons/icon-512-maskable.webp",
+			"type": "image/webp",
+			"sizes": "512x512",
+			"purpose": "maskable"
+		}
+	]
+}

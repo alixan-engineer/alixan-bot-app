@@ -1,0 +1,707 @@
+{
+	"app": {
+		"name": "Kaspi Bot",
+		"description": "Price automation bot for Kaspi stores"
+	},
+	"seo": {
+		"ogImageAlt": "Kaspi Bot — sales on autopilot",
+		"default": {
+			"title": "Kaspi Bot — manage your Kaspi.kz stores",
+			"description": "Manage stores, automate pricing, and receive new Kaspi.kz orders in Telegram from one Kaspi Bot dashboard."
+		},
+		"pages": {
+			"home": {
+				"title": "Home",
+				"description": "Kaspi store, bot, order and recent price change status."
+			},
+			"stores": {
+				"title": "Stores",
+				"description": "Connect and manage Kaspi stores."
+			},
+			"users": {
+				"title": "Users",
+				"description": "Add users and manage roles and access within the group."
+			},
+			"products": {
+				"title": "Products",
+				"description": "Product prices, Kaspi sellers and repricing settings."
+			},
+			"productSync": {
+				"title": "Product synchronization",
+				"description": "Add missing products to all active stores in the group."
+			},
+			"orders": {
+				"title": "Orders",
+				"description": "New orders sent to Telegram by Order Bot for the selected day."
+			},
+			"archive": {
+				"title": "Archive",
+				"description": "Kaspi order archive, statuses and issued order totals for a date range."
+			},
+			"analyticsOrders": {
+				"title": "Orders chart",
+				"description": "Kaspi order activity over the last three months."
+			},
+			"popularProducts": {
+				"title": "Popular products",
+				"description": "Products ranked by purchase count from the Kaspi archive."
+			},
+			"settings": {
+				"title": "Settings",
+				"description": "Price Bot, Order Bot and Telegram settings."
+			},
+			"priceBot": {
+				"title": "Price Bot",
+				"description": "Automatic Kaspi repricing settings."
+			},
+			"stockSettings": {
+				"title": "Product stock",
+				"description": "The product quantity sent to Kaspi during repricing."
+			},
+			"orderBot": {
+				"title": "Order Bot",
+				"description": "Order polling and Telegram notification settings."
+			},
+			"installPwa": {
+				"title": "Install the app",
+				"description": "How to install Kaspi Bot on your phone's home screen."
+			},
+			"signIn": {
+				"title": "Sign in",
+				"description": "Sign in to the Kaspi store management dashboard."
+			}
+		}
+	},
+	"nav": {
+		"homeSection": "Home",
+		"ordersSection": "Orders",
+		"productsSection": "Products",
+		"pages": "Pages",
+		"system": "System",
+		"home": "Home",
+		"stores": "Stores",
+		"users": "Users",
+		"products": "Products",
+		"productSync": "Product sync",
+		"orders": "Orders",
+		"archive": "Archive",
+		"telegramOrders": "Telegram orders",
+		"kaspiOrders": "Kaspi orders",
+		"ordersGraph": "Orders chart",
+		"popularProducts": "Popular products",
+		"settings": "Settings",
+		"stockManagement": "Stock management",
+		"useful": "Useful",
+		"installPwa": "Install the app"
+	},
+	"learning": {
+		"pwa": {
+			"title": "Install Kaspi Bot",
+			"description": "Add Kaspi Bot to your home screen and open it like a regular app without searching for the website.",
+			"iphone": {
+				"title": "iPhone and iPad",
+				"steps": {
+					"open": "Open Kaspi Bot in Safari.",
+					"share": "Tap the Share button in Safari's bottom toolbar.",
+					"homeScreen": "Scroll down and choose Add to Home Screen.",
+					"confirm": "Tap Add. The Kaspi Bot icon will appear on your home screen."
+				}
+			},
+			"android": {
+				"title": "Android",
+				"steps": {
+					"open": "Open Kaspi Bot in Chrome.",
+					"menu": "Tap the ⋮ menu in the top-right corner.",
+					"install": "Choose Install app or Add to Home screen.",
+					"confirm": "Confirm the installation. The Kaspi Bot icon will appear on your home screen."
+				}
+			}
+		}
+	},
+	"onboarding": {
+		"gettingStarted": {
+			"store": {
+				"title": "Add a store",
+				"description": "Open Stores, click + Store, and complete the form. Connection takes about 15 seconds. A green indicator will appear when it is ready."
+			},
+			"product": {
+				"title": "Configure a product",
+				"description": "Open Products, select a product, and click Repricing. Enter the minimum and maximum prices, then save the settings."
+			},
+			"priceBot": {
+				"title": "Enable repricing",
+				"description": "Open the Price Bot settings and click Enable repricing. You can also stop it there."
+			}
+		},
+		"emailLoginInstruction": {
+			"dialogTitle": "Instructions",
+			"title": "How do I connect a Kaspi store to Kaspi Bot using email?",
+			"steps": {
+				"openUsers": "Open Kaspi Seller Cabinet, go to Users, and click Add user.",
+				"fillForm": "Complete the form as follows 👇",
+				"usePassword": "A password will be sent to the email address you entered. Enter that email and the password from the message in Kaspi Bot.",
+				"complete": "Done. Your store will be connected to Kaspi Bot after these steps."
+			},
+			"form": {
+				"name": "User name: Alixan Bot",
+				"email": "Email: enter your email address",
+				"phone": "Phone number: leave blank",
+				"city": "City: All",
+				"permissions": "Select all permissions",
+				"save": "Click Save."
+			}
+		}
+	},
+	"auth": {
+		"signIn": "Sign in",
+		"signInDescription": "Manage Kaspi stores, prices and orders",
+		"submitSignIn": "Sign in",
+		"signOut": "Sign out",
+		"formRequired": {
+			"title": "Missing details",
+			"description": "Enter your phone number and password."
+		},
+		"signOutConfirm": {
+			"title": "Sign out?",
+			"description": "Your current session will end. You will need to enter your phone number and password again."
+		},
+		"phone": "Phone",
+		"email": "Email",
+		"password": "Password"
+	},
+	"common": {
+		"back": "Back",
+		"cancel": "Cancel",
+		"close": "Close",
+		"save": "Save",
+		"edit": "Edit",
+		"ok": "Got it"
+	},
+	"actions": {
+		"cancel": "Cancel",
+		"clear": "Clear",
+		"start": "Start",
+		"stop": "Stop",
+		"enable": "Enable",
+		"disable": "Disable",
+		"retry": "Retry",
+		"remove": "Remove",
+		"signOut": "Sign out"
+	},
+	"calendarLabels": {
+		"date": "Date",
+		"period": "Period",
+		"month": "Month",
+		"year": "Year",
+		"previousMonth": "Previous month",
+		"nextMonth": "Next month",
+		"last7Days": "7 days",
+		"last30Days": "30 days",
+		"last6Months": "6 months",
+		"lastYear": "Year"
+	},
+	"priceBot": {
+		"controlTitle": "Price Bot controls",
+		"controlDescription": "Starts or stops automatic price checks and updates across all active stores.",
+		"start": "Start repricing",
+		"stop": "Stop repricing",
+		"started": "Price Bot started.",
+		"stopped": "Price Bot stopped.",
+		"status": {
+			"start": "Price Bot is running",
+			"stop": "Price Bot is stopped"
+		},
+		"startConfirm": {
+			"title": "Start Price Bot?",
+			"description": "The bot will regularly check configured products in all active stores and may update prices within the min/max range."
+		},
+		"stopConfirm": {
+			"title": "Stop Price Bot?",
+			"description": "New checks and price updates will stop. Current Kaspi prices will remain unchanged."
+		}
+	},
+	"user": {
+		"profile": "Profile",
+		"preferences": "Preferences",
+		"role": "Administrator",
+		"language": "Language",
+		"selectLanguage": "Select language",
+		"theme": "Theme",
+		"darkTheme": "Dark theme",
+		"version": "Version: {version}",
+		"themes": {
+			"system": "System",
+			"light": "Light",
+			"dark": "Dark"
+		},
+		"languages": {
+			"ru": "Русский",
+			"en": "English",
+			"kk": "Қазақша"
+		}
+	},
+	"users": {
+		"makeWorkerConfirm": {
+			"title": "Change role to worker?",
+			"description": "The user will no longer be able to manage other users."
+		},
+		"makeAdminConfirm": {
+			"title": "Change role to administrator?",
+			"description": "The user will be able to add, remove and change the roles of other users."
+		},
+		"removeConfirm": {
+			"title": "Remove user?",
+			"description": "The user will lose access to this group. This action cannot be undone."
+		},
+		"empty": {
+			"title": "No users found",
+			"description": "Add the first user to start working together."
+		}
+	},
+	"dashboard": {
+		"recentPriceChanges": "Recent price changes",
+		"recentOrders": "Recent orders",
+		"storeHealth": "Stores",
+		"cards": {
+			"stores": "Active stores",
+			"products": "Active products",
+			"priceRules": "Active repricing",
+			"orders": "Orders",
+			"total": "total",
+			"recentOrders": "recent"
+		}
+	},
+	"settings": {
+		"tabs": {
+			"priceBot": "Price Bot",
+			"orderBot": "Order Bot"
+		},
+		"dumpingSettings": "Repricing settings",
+		"priceStep": "Price step",
+		"priceStepHint": "The step applies to all stores and products in your account.",
+		"priceStepError": "The price step must be greater than 0.",
+		"autoRaiseEnabled": "Automatic price increase",
+		"autoRaiseHint": "If your price is far below the nearest competitor or no competitors are found, the bot raises it within the maximum.",
+		"ignoredCompetitors": "Ignored competitors",
+		"ignoredCompetitorsHint": "Price Bot excludes these sellers when repricing all stores.",
+		"ignoredCompetitorsEmpty": "No ignored competitors.",
+		"competitorRequired": "Enter the competitor storeId.",
+		"saved": "Settings saved."
+	},
+	"stockSettings": {
+		"title": "Product stock",
+		"description": "Set the product quantity the bot sends to Kaspi during repricing.",
+		"quantity": "Product quantity",
+		"quantityHint": "Applies to all products",
+		"validation": {
+			"title": "Invalid product quantity",
+			"description": "Enter a whole number from 3 to 10,000."
+		},
+		"saved": "Stock settings saved",
+		"faq": {
+			"title": "Frequently asked questions",
+			"singleProduct": {
+				"title": "How do I change the stock for one product?",
+				"content": "Disable repricing for the product. Then open the Kaspi seller cabinet and change its stock manually."
+			},
+			"sameQuantity": {
+				"title": "Why does the bot set the same stock for every product?",
+				"content": "Our survey found that sellers do not maintain product stock because it takes too much time. It is easier to set it once and forget it."
+			},
+			"smallQuantity": {
+				"title": "What happens if I enter a small stock quantity?",
+				"content": "If the stock is 2, a customer cannot place one order for 3 units."
+			}
+		}
+	},
+	"orderBot": {
+		"controlTitle": "Order Bot controls",
+		"controlDescription": "Starts or stops checking new orders and sending them to Telegram.",
+		"start": "Start Order Bot",
+		"stop": "Stop Order Bot",
+		"started": "Order Bot started.",
+		"stopped": "Order Bot stopped.",
+		"sendStartHour": "Send orders from",
+		"sendStartHourDescription": "New orders will be sent to Telegram starting from the selected time.",
+		"autoDispatchTitle": "Automatic Express order handover",
+		"autoDispatchExpressOrders": "Automatically hand over Express orders",
+		"autoDispatchExpressOrdersDescription": "When disabled, Express orders must be handed over to the courier manually using the Telegram button.",
+		"startConfirm": {
+			"title": "Start Order Bot?",
+			"description": "The bot will check new orders from active stores and send them to the configured Telegram channel."
+		},
+		"stopConfirm": {
+			"title": "Stop Order Bot?",
+			"description": "New order checks and Telegram messages will stop. Existing messages will remain in the channel."
+		}
+	},
+	"telegram": {
+		"title": "Telegram",
+		"description": "Order Bot sends new orders to this Telegram channel.",
+		"botToken": "Bot token",
+		"chatId": "Chat ID",
+		"expressChatId": "Express orders Chat ID",
+		"regularChatId": "Regular orders Chat ID",
+		"pointChatId": "Pickup point Telegram Chat ID",
+		"pointExpressChatId": "Chat ID — Express",
+		"pointRegularChatId": "Chat ID — regular orders",
+		"storeChannels": "Store Telegram channels",
+		"chatsConfigured": "Configured {configured}/{total} chats",
+		"allChatsRequired": "Enter two Chat IDs for every pickup point: Express and regular orders.",
+		"pointChatsRequired": "Enter both Chat IDs for this pickup point.",
+		"noPickupPoints": "No active pickup points found. Add them in Kaspi first.",
+		"formRequired": "Enter the Telegram token and chat ID.",
+		"saved": "Telegram settings saved.",
+		"editChannel": "Change Telegram channel",
+		"testTitle": "Channel test",
+		"testDescription": "Send a test message to verify the token and chat ID.",
+		"testMessage": "Test message",
+		"sendTest": "Send test",
+		"testSent": "Test message sent."
+	},
+	"toast": {
+		"close": "Close"
+	},
+	"validation": {
+		"required": "Required field",
+		"invalidNumber": "Enter a valid number"
+	},
+	"store": {
+		"addStore": "Store",
+		"newStore": "New store",
+		"editStore": "Edit store",
+		"actions": "Store actions",
+		"add": "Connect",
+		"name": "Store name",
+		"city": "Store city",
+		"selectCity": "Select a city",
+		"authStarted": "Store added. Checking Kaspi access.",
+		"emailConnection": {
+			"description": "Connect a Kaspi store using email. If you are not sure how,",
+			"instructionLink": "click here."
+		},
+		"emailLoginHint": "Sign-in email",
+		"passwordLoginHint": "Sign-in password",
+		"enable": "Enable",
+		"enabled": "Store enabled.",
+		"disable": "Disable",
+		"disabled": "Store disabled.",
+		"startPriceBot": "Start repricing",
+		"stopPriceBot": "Stop repricing",
+		"priceBotEnabled": "Store repricing started.",
+		"priceBotDisabled": "Store repricing stopped.",
+		"priceBotStatus": {
+			"start": "Repricing enabled",
+			"stop": "Repricing stopped"
+		},
+		"saved": "Store saved.",
+		"newPassword": "New password",
+		"passwordEditHint": "Leave blank if the Kaspi password has not changed.",
+		"retry": "Retry",
+		"retryStarted": "Access check restarted.",
+		"mainStore": "Main store",
+		"changeMainStore": "Main store",
+		"mainStoreDescription": "The main store receives a 1 ₸ advantage during repricing to rank above your other stores.",
+		"mainStoreRequired": "Select the main store.",
+		"mainStoreSaved": "Main store updated.",
+		"remove": "Delete",
+		"removed": "Store deleted.",
+		"disableConfirm": {
+			"title": "Disable store?",
+			"description": "Price Bot will stop changing this store's prices and Order Bot will stop receiving its orders. Credentials will be retained."
+		},
+		"enableConfirm": {
+			"title": "Enable store?",
+			"description": "The store will become available to Price Bot and Order Bot again."
+		},
+		"retryConfirm": {
+			"title": "Retry authorization?",
+			"description": "The bot will sign in to Kaspi again and refresh the storeId and session."
+		},
+		"startPriceBotConfirm": {
+			"title": "Start store repricing?",
+			"description": "Price Bot will check configured products in this store and may update their prices."
+		},
+		"stopPriceBotConfirm": {
+			"title": "Stop store repricing?",
+			"description": "Price Bot will stop changing prices in this store only. Other stores and Order Bot will continue."
+		},
+		"removeConfirm": {
+			"title": "Delete store?",
+			"description": "Credentials, integration, competitor settings and history for this store will be deleted. Shared product settings will remain."
+		},
+		"formRequired": {
+			"title": "Complete the form",
+			"credentials": "Enter the Kaspi account email and password.",
+			"email": "Enter the Kaspi account email."
+		},
+		"status": {
+			"pending": "Checking access",
+			"enable": "Active",
+			"disable": "Disabled",
+			"authError": "Sign-in error"
+		},
+		"empty": {
+			"title": "No stores found",
+			"description": "Connect your first Kaspi store to start repricing."
+		}
+	},
+	"product": {
+		"clearRemoved": {
+			"button": "Disable repricing for removed products",
+			"title": "Disable repricing for removed products?",
+			"description": "Repricing will be disabled for all products without stores in the selected city of your group. Price settings will be kept.",
+			"success": "Products with repricing disabled: {count}"
+		},
+		"productCard": "Product card",
+		"openInKaspi": "Open in Kaspi",
+		"search": "Search products",
+		"synchronize": "Synchronize",
+		"syncSuccess": "Products were added to all connected stores.",
+		"syncPartial": "Synchronization completed, but some products could not be added.",
+		"syncConfirm": {
+			"title": "Synchronize products?",
+			"description": "For example, a product may be sold in only 2 of your 5 stores. Instead of finding these products and adding the other 3 stores manually, start synchronization. It will automatically connect all your stores to all products.",
+			"submit": "Synchronize"
+		},
+		"scrollToTop": "Scroll to top",
+		"addFavorite": "Add to favorites",
+		"removeFavorite": "Remove from favorites",
+		"storesShort": "stores",
+		"kaspiSellerPrices": "Sellers on Kaspi",
+		"offersFound": "Found: {count}",
+		"offersEmpty": {
+			"title": "No sellers found",
+			"description": "Kaspi returned no current offers for this product."
+		},
+		"sharedPriceRangeHint": "The range applies to this product in every store where it is sold.",
+		"enabled": "Product repricing enabled.",
+		"disabled": "Product repricing disabled.",
+		"enableDumping": "Enable repricing",
+		"disableDumping": "Disable repricing",
+		"dumpingControl": "Product repricing",
+		"dumpingEnabledHint": "Price Bot is automatically controlling this product's price.",
+		"dumpingDisabledHint": "Enable this to let Price Bot control the product's price.",
+		"enableConfirm": {
+			"title": "Enable product repricing?",
+			"description": "Price Bot will check this product in all your stores and may update its price within the configured range."
+		},
+		"disableConfirm": {
+			"title": "Disable product repricing?",
+			"description": "Price Bot will stop changing this product's price in all stores. Current Kaspi prices and the min/max range will remain."
+		},
+		"kaspiLimitNotice": "Kaspi limits price updates to 250 changes per store every 30 minutes.",
+		"currentKaspiPrice": "Current Kaspi price",
+		"lastPrice": "Last price",
+		"lastCompetitor": "Last competitor",
+		"priceRange": "Price range",
+		"changePrice": "Change price",
+		"changePriceRange": "Change range",
+		"reason": "Reason",
+		"minPrice": "Min. price",
+		"maxPrice": "Max. price",
+		"priceRangeEmpty": "Enter minimum and maximum prices",
+		"priceRangeRequired": "Enter minimum and maximum prices to enable repricing.",
+		"minMaxError": "The minimum price cannot exceed the maximum price.",
+		"configSaved": "Product settings saved.",
+		"ignoreCompetitors": "Ignore competitors",
+		"competitorId": "Competitor storeId",
+		"addIgnore": "Add",
+		"removeIgnore": "Remove from ignored",
+		"competitorIgnored": "Competitor added to ignored.",
+		"competitorRemoved": "Competitor removed from ignored.",
+		"status": {
+			"enable": "Active",
+			"disable": "Disabled",
+			"draft": "Setup required"
+		},
+		"filters": {
+			"all": "All",
+			"favorite": "Favorites",
+			"problem": "Repricing without stores",
+			"belowMin": "Competitor below minimum",
+			"atMin": "Price at minimum"
+		},
+		"filterInfo": {
+			"all": {
+				"title": "All products",
+				"description": "The complete catalog from connected stores, including products with any repricing status."
+			},
+			"favorite": {
+				"title": "Favorites",
+				"description": "Products you bookmarked for quick access."
+			},
+			"enable": {
+				"title": "Active repricing",
+				"description": "Price Bot controls these product prices within the configured range."
+			},
+			"disable": {
+				"title": "Repricing disabled",
+				"description": "Price Bot does not change these prices, but saved settings remain."
+			},
+			"draft": {
+				"title": "Setup required",
+				"description": "Repricing has not been configured or enabled for these products."
+			},
+			"problem": {
+				"title": "Repricing without stores",
+				"description": "Repricing is enabled, but the product is not sold in any connected store. Add it to a store or disable repricing."
+			},
+			"belowMin": {
+				"title": "Competitor below minimum",
+				"description": "The latest competitor price is below your minimum. Price Bot will not lower your price past the configured limit."
+			},
+			"atMin": {
+				"title": "Price at minimum",
+				"description": "Active products whose price has reached the configured minimum in at least one store."
+			}
+		},
+		"sort": {
+			"label": "Sort by price",
+			"default": "Default",
+			"cheapFirst": "Lowest price first",
+			"expensiveFirst": "Highest price first"
+		},
+		"tabs": {
+			"info": "Prices",
+			"sellers": "Sellers",
+			"prices": "Prices",
+			"dumping": "Repricing",
+			"history": "Change history"
+		},
+		"logStatus": {
+			"pending": "Awaiting application",
+			"success": "Success",
+			"failed": "Error",
+			"skipped": "Skipped"
+		},
+		"logsEmpty": {
+			"title": "No history",
+			"description": "The latest processing result will appear after the bot runs."
+		},
+		"empty": {
+			"title": "No products found",
+			"description": "Check active store connections or change your search."
+		}
+	},
+	"order": {
+		"date": "Order date",
+		"days": {
+			"today": "Today",
+			"yesterday": "Yesterday"
+		},
+		"search": "Search by order number, name, or address",
+		"store": "Store",
+		"ordersCount": "Orders",
+		"composition": "Order contents",
+		"pieces": "pcs.",
+		"total": "Total",
+		"activeOrders": "Active orders",
+		"lastCheckedAt": "Check:",
+		"customer": "Customer",
+		"delivery": "Delivery",
+		"status": {
+			"ok": "Check successful",
+			"error": "Check failed",
+			"notChecked": "Not checked"
+		},
+		"telegramStatus": {
+			"new": "New",
+			"in_progress": "In progress",
+			"ready": "Ready",
+			"courier_search": "Finding courier",
+			"courier_assigned": "Courier assigned",
+			"cleared": "Completed"
+		},
+		"deliveryType": {
+			"delivery": "Delivery",
+			"pickup": "Pickup",
+			"unknown": "Unknown"
+		},
+		"empty": {
+			"title": "No orders found",
+			"description": "Orders will appear here after Order Bot sends the first one to Telegram."
+		},
+		"connectionRequest": {
+			"title": "Connect Telegram orders",
+			"description": "If you need a Telegram channel with orders, send a request. Our administrators will set up a private Telegram channel where you can view your orders.",
+			"submit": "Send request",
+			"confirmTitle": "Send the request?",
+			"confirmDescription": "Administrators will receive your request to connect a private Telegram channel for orders.",
+			"success": "Request sent"
+		}
+	},
+	"archive": {
+		"description": "Kaspi archived orders for a period of up to 90 days.",
+		"completedCount": "Completed orders",
+		"completedAmount": "Completed order amount",
+		"rangeError": "The archive period cannot exceed 90 days.",
+		"filters": {
+			"all": "All",
+			"completed": "Completed",
+			"cancelled": "Cancelled",
+			"returned": "Returns"
+		},
+		"status": {
+			"completed": "Completed",
+			"cancelled": "Cancelled",
+			"returned": "Returned"
+		},
+		"empty": {
+			"title": "No archived orders found",
+			"description": "Change the period or filter. Kaspi data will appear after Order Bot synchronization."
+		}
+	},
+	"productSync": {
+		"info": "Synchronization adds products with a maximum price to all active stores. Price Bot pauses during the process and resumes automatically when it finishes.",
+		"actions": {
+			"start": "Start synchronization",
+			"running": "Synchronization in progress"
+		},
+		"confirm": {
+			"title": "Start product synchronization?",
+			"description": "Products with a specified maximum price will be added to all active stores.",
+			"submit": "Start"
+		},
+		"alreadyRunning": {
+			"title": "Synchronization is already running",
+			"description": "Wait for the current synchronization to finish. Progress updates automatically on this page."
+		},
+		"status": "Status",
+		"statuses": {
+			"idle": "Not started yet",
+			"queued": "Waiting for the Price Bot cycle to finish",
+			"running": "In progress",
+			"completed": "Completed",
+			"failed": "Completed with errors"
+		},
+		"processed": "Products processed",
+		"added": "Added",
+		"skipped": "Already synchronized",
+		"failedProducts": "Products with errors",
+		"failedOperations": "Failed additions",
+		"current": "Current",
+		"faq": {
+			"title": "Frequently asked questions",
+			"when": "When should you use automatic product addition?",
+			"removed": "If Kaspi has removed all your products from sale.",
+			"multipleStores": "If you have several stores and want them all to sell the same products."
+		}
+	},
+	"analytics": {
+		"ordersTitle": "Orders chart",
+		"ordersDescription": "Number of orders by day for the selected period.",
+		"totalOrders": "Total orders",
+		"peakDay": "Busiest day",
+		"peakMonth": "Most orders in a month",
+		"weekdayTitle": "Orders by day of week",
+		"peakWeekday": "Most orders on",
+		"hourTitle": "Orders by time of day",
+		"peakHour": "Most orders at this time",
+		"popularTitle": "Popular products",
+		"popularDescription": "Issued order statistics for the selected period.",
+		"purchased": "Purchased, pcs.",
+		"empty": "No data",
+		"emptyDescription": "No matching orders were found for the selected period."
+	}
+}
