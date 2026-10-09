@@ -4,10 +4,9 @@
 	"private": true,
 	"scripts": {
 		"build": "nuxt build",
-		"dev": "nuxt dev --port 5101",
+		"dev": "nuxt dev",
 		"generate": "nuxt generate",
-		"preview": "nuxt preview",
-		"postinstall": "nuxt prepare"
+		"preview": "nuxt preview"
 	},
 	"dependencies": {
 		"@lucide/vue": "^1.54.0",
