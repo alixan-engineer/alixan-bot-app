@@ -106,7 +106,7 @@ const measureRow = (
 	}
 };
 
-watch(containerRef, container => {
+watch(containerRef, (container) => {
 	resizeObserver?.disconnect();
 	resizeObserver = undefined;
 
@@ -115,7 +115,9 @@ watch(containerRef, container => {
 		return;
 	}
 
-	scrollElement.value = container.closest('main');
+	scrollElement.value = container.closest<HTMLElement>(
+		'[data-product-scroll], main',
+	);
 	updateMetrics();
 	resizeObserver = new ResizeObserver(updateMetrics);
 	resizeObserver.observe(container);

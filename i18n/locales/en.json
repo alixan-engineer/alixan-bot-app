@@ -1,6 +1,6 @@
 {
 	"app": {
-		"name": "Kaspi Bot",
+		"name": "Alixan Bot",
 		"description": "Price automation bot for Kaspi stores"
 	},
 	"seo": {
@@ -80,13 +80,13 @@
 		"system": "System",
 		"home": "Home",
 		"stores": "Stores",
-		"users": "Users",
-		"products": "Products",
+		"users": "Employees",
+		"products": "Repricing",
 		"productSync": "Product sync",
 		"orders": "Orders",
 		"archive": "Archive",
 		"telegramOrders": "Telegram orders",
-		"kaspiOrders": "Kaspi orders",
+		"kaspiOrders": "Kaspi archive",
 		"ordersGraph": "Orders chart",
 		"popularProducts": "Popular products",
 		"settings": "Settings",
@@ -447,10 +447,14 @@
 		}
 	},
 	"product": {
+		"disableBelowMin": {
+			"button": "Disable repricing",
+			"title": "Disable repricing for these products",
+			"success": "Repricing disabled for {count} products"
+		},
 		"clearRemoved": {
-			"button": "Disable repricing for removed products",
-			"title": "Disable repricing for removed products?",
-			"description": "Repricing will be disabled for all products without stores in the selected city of your group. Price settings will be kept.",
+			"button": "Disable repricing",
+			"title": "Disable repricing for these products",
 			"success": "Products with repricing disabled: {count}"
 		},
 		"productCard": "Product card",
@@ -649,7 +653,7 @@
 		},
 		"empty": {
 			"title": "No archived orders found",
-			"description": "Change the period or filter. Kaspi data will appear after Order Bot synchronization."
+			"description": "No orders with this status in the selected period. Change the period or select another tab."
 		}
 	},
 	"productSync": {
@@ -703,5 +707,34 @@
 		"purchased": "Purchased, pcs.",
 		"empty": "No data",
 		"emptyDescription": "No matching orders were found for the selected period."
+	},
+	"ordersUi": {
+		"findOrder": "Find an order",
+		"graph": "Chart",
+		"orderAmount": "Order amount",
+		"loadError": "Could not load orders",
+		"tryAgain": "Try loading the data again.",
+		"retry": "Retry",
+		"partialError": "Some stores did not respond. Orders and totals may be incomplete.",
+		"results": "Found: {count}",
+		"enterSearch": "Enter an order number, name or address",
+		"searchHint": "Search results appear here separately from the main list.",
+		"telegramSearchHint": "Search saved Telegram orders from all dates, independently of the page period and status."
+	},
+	"catalogUi": {
+		"refresh": "Refresh",
+		"refreshed": "Catalog refreshed",
+		"updated": "Updated: {date}",
+		"cacheHint": "The catalog is saved for a day. Refresh to see current prices.",
+		"filters": "Filters",
+		"city": "City",
+		"priceState": "Price condition",
+		"sortFirst": "Show first",
+		"cheap": "Cheapest",
+		"expensive": "Most expensive",
+		"apply": "Apply",
+		"found": "Products: {count}",
+		"searchTitle": "Find a product",
+		"searchHint": "Search all product statuses in the selected city."
 	}
 }

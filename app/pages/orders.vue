@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { Search as SearchIcon } from '@lucide/vue';
+import TelegramOrderSearchDrawer from '~/features/orders/TelegramOrderSearchDrawer.vue';
+import ArchiveVirtualScroller from '~/features/archive/ArchiveVirtualScroller.vue';
+import { toAlmatyDay } from '~/utils/order-graph';
 import ConfirmDialog from '~/components/ui/confirm-dialog/ConfirmDialog.vue';
 
 usePageMeta({
@@ -10,59 +14,90 @@ const orders = useOrders();
 const userStore = useUser();
 const dialog = useDialog();
 const toast = useToast();
-const search = ref('');
+const drawer = useDrawer();
+const { locale } = useI18n();
+const today = toAlmatyDay(Date.now());
+const range = ref<{ from: string; to: string } | null>({
+	from: today,
+	to: today,
+});
+const selectedTab = ref(0);
+const statusValues = [
+	'',
+	'new',
+	'in_progress',
+	'ready',
+	'courier_search',
+	'courier_assigned',
+	'cleared',
+];
+const tabs = [
+	'archive.filters.all',
+	...statusValues.slice(1).map((status) => `order.telegramStatus.${status}`),
+];
+const openSearch = () =>
+	drawer.open(TelegramOrderSearchDrawer, {
+		title: 'ordersUi.findOrder',
+		position: 'right',
+		width: '720px',
+	});
 const initialLoading = ref(true);
 const requestLoading = ref(false);
+const loadFailed = ref(false);
+const refreshing = ref(false);
 let pollingTimer: ReturnType<typeof setInterval> | undefined;
 
 const orderBotEnabled = computed(
 	() => userStore.user?.orderBotEnabled === true,
 );
 
-type SelectedDay = 'today' | 'yesterday';
+useAppBarActions(() =>
+	orderBotEnabled.value
+		? { icon: SearchIcon, label: 'ordersUi.findOrder', onClick: openSearch }
+		: null,
+);
 
-const dayFilters: Array<{ value: SelectedDay; label: string }> = [
-	{ value: 'today', label: 'order.days.today' },
-	{ value: 'yesterday', label: 'order.days.yesterday' },
-];
+const periodOrders = computed(() =>
+	orders.orders.filter((order) => {
+		const day = toAlmatyDay(order.createdAt);
+		return (
+			range.value?.from &&
+			range.value.to &&
+			day >= range.value.from &&
+			day <= range.value.to
+		);
+	}),
+);
+const selectedOrders = computed(() =>
+	periodOrders.value.filter(
+		(order) =>
+			!statusValues[selectedTab.value] ||
+			order.telegramStatus === statusValues[selectedTab.value],
+	),
+);
+const totalAmount = computed(() =>
+	periodOrders.value.reduce((total, order) => total + order.totalAmount, 0),
+);
 
-const dayFormatter = new Intl.DateTimeFormat('en-CA', {
-	year: 'numeric',
-	month: '2-digit',
-	day: '2-digit',
-	timeZone: 'Asia/Almaty',
-});
-
-const toDayKey = (value: Date): string => {
-	const parts = dayFormatter.formatToParts(value);
-	const part = (type: Intl.DateTimeFormatPartTypes) =>
-		parts.find(item => item.type === type)?.value ?? '';
-
-	return `${part('year')}-${part('month')}-${part('day')}`;
+const refresh = async () => {
+	if (!range.value?.from || !range.value.to) return;
+	refreshing.value = true;
+	try {
+		await orders.getOrders(range.value);
+		loadFailed.value = false;
+	} catch {
+		loadFailed.value = true;
+	} finally {
+		refreshing.value = false;
+	}
 };
-
-const selectedDay = ref<SelectedDay>('today');
-
-const selectedDate = computed(() => {
-	const offset = selectedDay.value === 'yesterday' ? 86_400_000 : 0;
-	return toDayKey(new Date(Date.now() - offset));
-});
-
-const selectedOrders = computed(() => {
-	const query = search.value.trim().toLocaleLowerCase();
-	return orders.orders.filter(order => {
-		const matchesDate =
-			toDayKey(new Date(order.createdAt)) === selectedDate.value;
-		const matchesSearch =
-			!query ||
-			[order.sourceOrderId, order.customerName, order.deliveryAddress].some(
-				value => value?.toLocaleLowerCase().includes(query),
-			);
-		return matchesDate && matchesSearch;
-	});
-});
-
-const refresh = () => orders.getOrders();
+watch(
+	range,
+	() => {
+		if (orderBotEnabled.value && !initialLoading.value) void refresh();
+	},
+	{ deep: true },
+);
 
 const sendConnectionRequest = async () => {
 	if (requestLoading.value) return;
@@ -113,47 +148,68 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<Spinner v-if="initialLoading" />
-
-	<Empty
-		v-else-if="!orderBotEnabled"
-		title="order.connectionRequest.title"
-		description="order.connectionRequest.description"
-		button="order.connectionRequest.submit"
-		@action="confirmConnectionRequest"
-	/>
-
-	<template v-else>
-		<div class="flex flex-wrap gap-2">
-			<Chip
-				v-for="filter in dayFilters"
-				:key="filter.value"
-				:label="$t(filter.label)"
-				:selected="selectedDay === filter.value"
-				@click="selectedDay = filter.value"
-			/>
-		</div>
-
-		<Search v-model="search" :placeholder="$t('order.search')" />
-
-		<div v-if="selectedOrders.length" class="space-y-3 sm:space-y-4">
-			<p class="text-base font-semibold sm:text-lg">
-				{{ $t('order.ordersCount') }}:
-				{{ selectedOrders.length }}
-			</p>
-			<div class="grid gap-3 sm:gap-5 xl:grid-cols-2">
-				<OrderCard
-					v-for="order in selectedOrders"
-					:key="order.dedupeKey"
-					:order="order"
-				/>
-			</div>
-		</div>
+	<div class="flex min-w-0 shrink-0 flex-col gap-6">
+		<Spinner v-if="initialLoading" />
 
 		<Empty
-			v-else
-			title="order.empty.title"
-			description="order.empty.description"
+			v-else-if="!orderBotEnabled"
+			title="order.connectionRequest.title"
+			description="order.connectionRequest.description"
+			button="order.connectionRequest.submit"
+			@action="confirmConnectionRequest"
 		/>
-	</template>
+
+		<template v-else>
+			<Calendar
+				v-model="range"
+				mode="range"
+				:locale="locale"
+				:label="$t('calendarLabels.period')"
+				date-format="dd.mm.yyyy"
+				class="max-w-xl"
+			/>
+			<div class="grid grid-cols-2 gap-3 sm:gap-4">
+				<Island
+					class="h-full"
+					content-class="flex h-full flex-col justify-between gap-2 p-4 sm:p-5"
+				>
+					<p class="text-sm text-muted-foreground">
+						{{ $t('order.ordersCount') }}
+					</p>
+					<p class="text-xl font-semibold sm:text-2xl">
+						{{ periodOrders.length }}
+					</p>
+				</Island>
+				<Island
+					class="h-full"
+					content-class="flex h-full flex-col justify-between gap-2 p-4 sm:p-5"
+				>
+					<p class="text-sm text-muted-foreground">
+						{{ $t('ordersUi.orderAmount') }}
+					</p>
+					<p class="text-xl font-semibold sm:text-2xl">
+						<Price :value="totalAmount" />
+					</p>
+				</Island>
+			</div>
+			<Tabs v-model="selectedTab" :tabs="tabs" design="material" full />
+			<Spinner v-if="refreshing" />
+			<Empty
+				v-else-if="loadFailed"
+				title="ordersUi.loadError"
+				description="ordersUi.tryAgain"
+				button="ordersUi.retry"
+				@action="refresh"
+			/>
+			<ArchiveVirtualScroller
+				v-else-if="selectedOrders.length"
+				:orders="selectedOrders"
+			/>
+			<Empty
+				v-else
+				title="order.empty.title"
+				description="order.empty.description"
+			/>
+		</template>
+	</div>
 </template>

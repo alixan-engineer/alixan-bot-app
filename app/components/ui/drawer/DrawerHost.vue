@@ -1,32 +1,26 @@
 <script setup lang="ts">
 const drawer = useDrawer();
-
-const open = computed({
-	get: () => Boolean(drawer.state.value),
-	set: value => {
-		if (!value) {
-			drawer.close();
-		}
-	},
-});
 </script>
 
 <template>
 	<ClientOnly>
 		<Drawer
-			v-model="open"
-			:width="drawer.state.value?.options.width"
-			:height="drawer.state.value?.options.height"
-			:title="drawer.state.value?.options.title"
-			:position="drawer.state.value?.options.position"
+			v-for="(item, index) in drawer.stack.value"
+			:key="item.id"
+			:model-value="true"
+			:active="index === drawer.stack.value.length - 1"
+			:z-index="9000 + index"
+			:width="item.options.width"
+			:height="item.options.height"
+			:title="item.options.title"
+			:position="item.options.position"
+			@update:model-value="(value) => !value && drawer.close(item.id)"
 		>
-			<template v-if="drawer.state.value">
-				<component
-					:is="drawer.state.value.component"
-					:data="drawer.state.value.options.data"
-					:close="drawer.close"
-				/>
-			</template>
+			<component
+				:is="item.component"
+				:data="item.options.data"
+				:close="() => drawer.close(item.id)"
+			/>
 		</Drawer>
 	</ClientOnly>
 </template>

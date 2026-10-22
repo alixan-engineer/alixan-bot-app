@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
+import {
+	isTopDialog,
+	registerOpenDialog,
+	unregisterOpenDialog,
+} from '~/composables/useDialog';
 import { cn } from '~/utils/cn';
 
 defineOptions({
@@ -15,6 +20,8 @@ interface DrawerProps {
 	title?: string;
 	position?: DrawerPosition;
 	closeOnOverlay?: boolean;
+	active?: boolean;
+	zIndex?: number;
 }
 
 const props = withDefaults(defineProps<DrawerProps>(), {
@@ -23,6 +30,8 @@ const props = withDefaults(defineProps<DrawerProps>(), {
 	title: '',
 	position: 'bottom',
 	closeOnOverlay: true,
+	active: true,
+	zIndex: 9000,
 });
 
 const emit = defineEmits<{
@@ -30,6 +39,7 @@ const emit = defineEmits<{
 }>();
 
 const open = defineModel<boolean>({ default: false });
+const drawerToken = Symbol('drawer');
 const panelRef = ref<HTMLElement | null>(null);
 const touchStartY = ref<number | null>(null);
 const dragOffset = ref(0);
@@ -87,7 +97,10 @@ const handleTouchStart = (event: TouchEvent) => {
 	let hasScrolledContent = false;
 	while (element && element !== panelRef.value) {
 		const overflowY = window.getComputedStyle(element).overflowY;
-		if ((overflowY === 'auto' || overflowY === 'scroll') && element.scrollTop > 0) {
+		if (
+			(overflowY === 'auto' || overflowY === 'scroll') &&
+			element.scrollTop > 0
+		) {
 			hasScrolledContent = true;
 			break;
 		}
@@ -128,31 +141,36 @@ const panelStyle = computed(() => ({
 }));
 
 const handleOverlayMouseDown = () => {
-	if (props.closeOnOverlay) {
+	if (props.closeOnOverlay && props.active) {
 		closeDrawer();
 	}
 };
 
 const handleKeydown = (event: KeyboardEvent) => {
-	if (event.key === 'Escape' && open.value) {
+	if (
+		event.key === 'Escape' &&
+		open.value &&
+		props.active &&
+		isTopDialog(drawerToken)
+	) {
 		closeDrawer();
 	}
 };
 
-watch(open, value => {
-	if (!import.meta.client) {
-		return;
-	}
-
-	if (value) {
-		document.addEventListener('keydown', handleKeydown);
-		document.body.style.overflow = 'hidden';
-		return;
-	}
-
-	document.removeEventListener('keydown', handleKeydown);
-	document.body.style.overflow = '';
-});
+watch(
+	open,
+	(value, oldValue) => {
+		if (!import.meta.client) return;
+		if (value && !oldValue) {
+			document.addEventListener('keydown', handleKeydown);
+			registerOpenDialog(drawerToken);
+		} else if (!value && oldValue) {
+			document.removeEventListener('keydown', handleKeydown);
+			unregisterOpenDialog(drawerToken);
+		}
+	},
+	{ immediate: true },
+);
 
 onBeforeUnmount(() => {
 	if (!import.meta.client) {
@@ -160,7 +178,7 @@ onBeforeUnmount(() => {
 	}
 
 	document.removeEventListener('keydown', handleKeydown);
-	document.body.style.overflow = '';
+	if (open.value) unregisterOpenDialog(drawerToken);
 });
 </script>
 
@@ -176,7 +194,8 @@ onBeforeUnmount(() => {
 		>
 			<div
 				v-if="open"
-				class="backdrop z-9000"
+				class="backdrop"
+				:style="{ zIndex }"
 				@mousedown.stop="handleOverlayMouseDown"
 				@click.stop
 			>
@@ -200,7 +219,9 @@ onBeforeUnmount(() => {
 							)
 						"
 						role="dialog"
-						aria-modal="true"
+						:aria-modal="active ? true : undefined"
+						:aria-hidden="!active || undefined"
+						:inert="!active || undefined"
 						@mousedown.stop
 						@touchstart.passive="handleTouchStart"
 						@touchmove="handleTouchMove"

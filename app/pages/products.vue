@@ -1,6 +1,12 @@
 <script setup lang="ts">
-import { ArrowUp, Check, ChevronDown } from '@lucide/vue';
+import {
+	ArrowUp,
+	RefreshCw,
+	SlidersHorizontal,
+	Search as SearchIcon,
+} from '@lucide/vue';
 import ConfirmDialog from '~/components/ui/confirm-dialog/ConfirmDialog.vue';
+import ProductSearchDrawer from '~/features/product/ProductSearchDrawer.vue';
 import ProductVirtualScroller from '~/features/product/ProductVirtualScroller.vue';
 
 usePageMeta({
@@ -13,55 +19,122 @@ const favorites = useFavoriteProducts();
 const dialog = useDialog();
 const toast = useToast();
 const loader = useGlobalLoader();
-const clearingRemoved = ref(false);
-const removedCount = computed(() => products.products.filter(
-	product => product.status === 'enable' && !product.stores.length,
-).length);
+const disablingProducts = ref(false);
+const removedCount = computed(
+	() =>
+		products.products.filter(
+			(product) => product.status === 'enable' && !product.stores.length,
+		).length,
+);
 
-const confirmClearRemoved = () => {
-	if (clearingRemoved.value || products.loading || !removedCount.value) return;
+const belowMinCount = computed(
+	() =>
+		products.products.filter(
+			(product) => product.status === 'enable' && product.competitorBelowMin,
+		).length,
+);
+const atMinCount = computed(() => products.products.filter(isAtMinPrice).length);
+const confirmDisableProducts = (kind: 'removed' | 'belowMin' | 'atMin') => {
+	const atMinProducts = kind === 'atMin' ? products.products.filter(isAtMinPrice) : [];
+	const count = kind === 'removed' ? removedCount.value : kind === 'atMin' ? atMinProducts.length : belowMinCount.value;
+	if (disablingProducts.value || products.loading || !count) return;
+	const translation =
+		kind === 'removed' ? 'product.clearRemoved' : 'product.disableBelowMin';
 	const selectedCity = products.cityId;
+	filtersOpen.value = false;
 	dialog.open(ConfirmDialog, {
 		width: '460px',
-		height: '300px',
+		height: '180px',
 		data: {
-			title: 'product.clearRemoved.title',
-			description: 'product.clearRemoved.description',
+			title: `${translation}.title`,
 			cancelLabel: 'common.cancel',
 			submitLabel: 'actions.disable',
 			submitColor: 'destructive',
 			onSubmit: async () => {
-				if (clearingRemoved.value) return;
-				clearingRemoved.value = true;
+				if (disablingProducts.value) return;
+				disablingProducts.value = true;
 				loader.show();
 				try {
-					const result = await products.disableRemovedProducts(selectedCity);
+					const disableAtMin = async () => {
+						let disabledCount = 0;
+						for (const product of atMinProducts) {
+							await products.updateProduct(product.masterSku, { status: 'disable', cityId: selectedCity });
+							disabledCount++;
+						}
+						return { disabledCount };
+					};
+					const result =
+						kind === 'removed'
+							? await products.disableRemovedProducts(selectedCity)
+							: kind === 'atMin'
+								? await disableAtMin()
+								: await products.disableBelowMinProducts(selectedCity);
 					await products.getProducts();
-					toast.open(t('product.clearRemoved.success', { count: result.disabledCount }), 'success');
+					toast.open(
+						t(`${translation}.success`, { count: result.disabledCount }),
+						'success',
+					);
 				} catch {
 					// useApiFetch displays the API error.
 				} finally {
-					clearingRemoved.value = false;
+					disablingProducts.value = false;
 					loader.hide();
 				}
 			},
 		},
 	});
 };
-const { t } = useI18n();
-const search = ref('');
+const { t, locale } = useI18n();
+const drawer = useDrawer();
+const openSearch = () =>
+	drawer.open(ProductSearchDrawer, {
+		title: 'catalogUi.searchTitle',
+		position: 'right',
+		width: '800px',
+	});
+useAppBarActions([
+	{ icon: SearchIcon, label: 'catalogUi.searchTitle', onClick: openSearch },
+	{
+		icon: SlidersHorizontal,
+		label: 'catalogUi.filters',
+		onClick: () => {
+			filtersOpen.value = true;
+		},
+	},
+]);
 const pageElement = ref<HTMLElement>();
-const swiperContainer = ref<
-	| (HTMLElement & {
-			swiper?: { slideTo: (index: number, speed?: number) => void };
-	  })
-	| null
->(null);
+const filtersOpen = ref(false);
 const showScrollToTop = ref(false);
 let scrollContainer: HTMLElement | null = null;
 type PriceSort = 'none' | 'asc' | 'desc';
 const priceSort = ref<PriceSort>('none');
-const sortMenuOpen = ref(false);
+const draftCityId = ref('');
+const draftPriceSort = ref<PriceSort>('none');
+const applyingFilters = ref(false);
+watch(filtersOpen, (open) => {
+	if (!open) return;
+	draftCityId.value = products.cityId;
+	draftPriceSort.value = priceSort.value;
+});
+const applyFilters = async () => {
+	if (applyingFilters.value || products.loading) return;
+	const previousCity = products.cityId;
+	applyingFilters.value = true;
+	try {
+		if (draftCityId.value !== previousCity) {
+			products.cityId = draftCityId.value;
+			await loadProducts();
+		}
+		priceSort.value = draftPriceSort.value;
+		filtersOpen.value = false;
+	} catch {
+		products.cityId = previousCity;
+		// Keep the draft open so the user can retry after the API error.
+	} finally {
+		applyingFilters.value = false;
+	}
+};
+
 const statusFilter = ref<
 	| 'all'
 	| 'favorite'
@@ -77,6 +150,23 @@ type ProductViewStatus = 'enable' | 'disable' | 'draft';
 const loadProducts = async () => {
 	await products.getProducts();
 };
+const refreshCatalog = async () => {
+	if (products.loading) return;
+	try {
+		await products.getProducts(true);
+		toast.open('catalogUi.refreshed', 'success');
+	} catch {
+		/* The API error is displayed by useApiFetch. */
+	}
+};
+const updatedLabel = computed(() =>
+	products.catalogUpdatedAt
+		? new Intl.DateTimeFormat(locale.value, {
+				dateStyle: 'short',
+				timeStyle: 'short',
+		  }).format(new Date(products.catalogUpdatedAt))
+		: '',
+);
 
 const productViewStatus = (
 	product: (typeof products.products)[number],
@@ -91,11 +181,10 @@ const productViewStatus = (
 const isAtMinPrice = (product: (typeof products.products)[number]) =>
 	product.status === 'enable' &&
 	typeof product.minPrice === 'number' &&
-	product.stores.some(store => store.currentPrice === product.minPrice);
+	product.stores.some((store) => store.currentPrice === product.minPrice);
 
 const filteredProducts = computed(() => {
-	const query = search.value.trim().toLocaleLowerCase();
-	const filtered = products.products.filter(product => {
+	const filtered = products.products.filter((product) => {
 		const matchesStatus =
 			statusFilter.value === 'all' ||
 			(statusFilter.value === 'problem' &&
@@ -106,19 +195,14 @@ const filteredProducts = computed(() => {
 			(statusFilter.value === 'favorite' &&
 				favorites.isFavorite(product.key)) ||
 			productViewStatus(product) === statusFilter.value;
-		const matchesSearch =
-			!query ||
-			[product.masterTitle, product.masterSku, product.sku].some(
-				value => value?.toLocaleLowerCase().includes(query),
-			);
-		return matchesStatus && matchesSearch;
+		return matchesStatus;
 	});
 
 	if (priceSort.value === 'none') return filtered;
 
 	const getLowestPrice = (product: (typeof products.products)[number]) => {
 		const prices = product.stores
-			.map(store => store.currentPrice)
+			.map((store) => store.currentPrice)
 			.filter((price): price is number => typeof price === 'number');
 		return prices.length ? Math.min(...prices) : null;
 	};
@@ -136,22 +220,9 @@ const filteredProducts = computed(() => {
 
 const priceSortOptions = computed(() => [
 	{ label: t('product.sort.default'), value: 'none' as const },
-	{ label: t('product.sort.cheapFirst'), value: 'asc' as const },
-	{ label: t('product.sort.expensiveFirst'), value: 'desc' as const },
+	{ label: t('catalogUi.cheap'), value: 'asc' as const },
+	{ label: t('catalogUi.expensive'), value: 'desc' as const },
 ]);
-
-const selectPriceSort = (value: PriceSort) => {
-	priceSort.value = value;
-	sortMenuOpen.value = false;
-};
-
-const selectStatusFilter = (
-	value: typeof statusFilter.value,
-	index: number,
-) => {
-	statusFilter.value = value;
-	swiperContainer.value?.swiper?.slideTo(index, 300);
-};
 
 const statusFilters = computed(() => {
 	const counts = products.products.reduce(
@@ -167,14 +238,14 @@ const statusFilters = computed(() => {
 	);
 
 	return [
-		{ label: 'product.filters.all', value: 'all' as const, count: counts.all },
 		{
 			label: 'product.filters.favorite',
 			value: 'favorite' as const,
-			count: products.products.filter(product =>
+			count: products.products.filter((product) =>
 				favorites.isFavorite(product.key),
 			).length,
 		},
+		{ label: 'product.filters.all', value: 'all' as const, count: counts.all },
 		{
 			label: 'product.status.enable',
 			value: 'enable' as const,
@@ -194,13 +265,13 @@ const statusFilters = computed(() => {
 			label: 'product.filters.problem',
 			value: 'problem' as const,
 			count: products.products.filter(
-				product => product.status === 'enable' && !product.stores.length,
+				(product) => product.status === 'enable' && !product.stores.length,
 			).length,
 		},
 		{
 			label: 'product.filters.belowMin',
 			value: 'belowMin' as const,
-			count: products.products.filter(product => product.competitorBelowMin)
+			count: products.products.filter((product) => product.competitorBelowMin)
 				.length,
 		},
 		{
@@ -211,11 +282,19 @@ const statusFilters = computed(() => {
 	];
 });
 
-const filterInfo = computed(() => ({
-	title: `product.filterInfo.${statusFilter.value}.title`,
-	description: `product.filterInfo.${statusFilter.value}.description`,
-}));
-
+const mainFilters = computed(() => statusFilters.value);
+const selectedTab = computed({
+	get: () =>
+		Math.max(
+			0,
+			mainFilters.value.findIndex(
+				(filter) => filter.value === statusFilter.value,
+			),
+		),
+	set: (index: number) => {
+		statusFilter.value = mainFilters.value[index]?.value ?? 'all';
+	},
+});
 const syncScrollToTop = () => {
 	showScrollToTop.value = (scrollContainer?.scrollTop ?? 0) > 400;
 };
@@ -241,89 +320,124 @@ onBeforeUnmount(() => {
 
 <template>
 	<div ref="pageElement" class="size-full space-y-6">
-		<swiper-container
-			ref="swiperContainer"
-			free-mode
-			free-mode-sticky
-			slides-per-view="auto"
-			space-between="8"
-			class="block min-w-0 max-w-full"
-		>
-			<swiper-slide
-				v-for="(filter, index) in statusFilters"
-				:key="filter.value"
-			>
-				<Chip
-					:selected="statusFilter === filter.value"
-					@click="selectStatusFilter(filter.value, index)"
-				>
-					{{ $t(filter.label) }} ({{ filter.count }})
-				</Chip>
-			</swiper-slide>
-		</swiper-container>
-
 		<InfoBox>
-			<span class="font-semibold text-foreground">
-				{{ $t(filterInfo.title) }}.
+			<span class="block text-sm font-medium leading-5">
+				{{ $t('catalogUi.updated', { date: updatedLabel || '—' }) }}
 			</span>
-			{{ ' ' }}{{ $t(filterInfo.description) }}
+			<span class="mt-1 block text-xs leading-5 text-muted-foreground">
+				{{ $t('catalogUi.cacheHint') }}
+			</span>
+			<template #trailing>
+				<IconButton
+					variant="ghost"
+					:tooltip="$t('catalogUi.refresh')"
+					:aria-label="$t('catalogUi.refresh')"
+					:disabled="products.loading"
+					@click="refreshCatalog"
+				>
+					<RefreshCw :class="{ 'animate-spin': products.loading }" />
+				</IconButton>
+			</template>
 		</InfoBox>
-
-		<div class="flex">
-			<Button
-				variant="outlined"
-				color="destructive"
-				size="sm"
-				:disabled="products.loading || clearingRemoved || !removedCount"
-				@click="confirmClearRemoved"
+		<Tabs
+			v-model="selectedTab"
+			:tabs="mainFilters.map((filter) => filter.label)"
+			:counts="mainFilters.map((filter) => filter.count)"
+			design="material"
+			full
+		/>
+		<Teleport to="#scaffold-footer" defer>
+			<footer
+				v-if="statusFilter === 'problem' || statusFilter === 'belowMin' || statusFilter === 'atMin'"
+				class="border-t bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] md:px-6"
 			>
-				{{ $t('product.clearRemoved.button') }} ({{ removedCount }})
-			</Button>
-		</div>
-
-		<div class="flex gap-4">
-			<select v-if="products.cities.length" v-model="products.cityId" aria-label="Город" class="rounded-lg border bg-background p-3" @change="loadProducts">
-        <option v-for="city in products.cities" :key="city.id" :value="city.id">{{ city.name }}</option>
-      </select>
-      <Search v-model="search" :placeholder="$t('product.search')" />
-			<DropdownMenu
-				v-model:open="sortMenuOpen"
-				width="250px"
-				position="bottomRight"
-			>
-				<template #trigger>
-					<IconButton
-						variant="outlined"
-						:tooltip="$t('product.sort.label')"
-						:aria-label="$t('product.sort.label')"
+				<Button
+					v-if="statusFilter === 'problem'"
+					variant="filled"
+					size="sm"
+					color="destructive"
+					class="h-auto min-h-11 w-full whitespace-normal py-2 [&>span]:whitespace-normal"
+					:disabled="products.loading || disablingProducts || !removedCount"
+					@click="confirmDisableProducts('removed')"
+				>
+					{{ $t('product.clearRemoved.button') }}
+				</Button>
+				<Button
+					v-else-if="statusFilter === 'belowMin'"
+					variant="filled"
+					size="sm"
+					color="destructive"
+					class="h-auto min-h-11 w-full whitespace-normal py-2 [&>span]:whitespace-normal"
+					:disabled="products.loading || disablingProducts || !belowMinCount"
+					@click="confirmDisableProducts('belowMin')"
+				>
+					{{ $t('product.disableBelowMin.button') }}
+				</Button>
+				<Button
+					v-else-if="statusFilter === 'atMin'"
+					variant="filled"
+					size="sm"
+					color="destructive"
+					class="h-auto min-h-11 w-full whitespace-normal py-2 [&>span]:whitespace-normal"
+					:disabled="products.loading || disablingProducts || !atMinCount"
+					@click="confirmDisableProducts('atMin')"
+				>
+					{{ $t('product.disableBelowMin.button') }}
+				</Button>
+			</footer>
+		</Teleport>
+		<Drawer
+			v-model="filtersOpen"
+			position="right"
+			width="440px"
+			title="catalogUi.filters"
+		>
+			<div class="flex min-h-full flex-col gap-6 p-4 sm:p-6">
+				<section v-if="products.cities.length" class="space-y-3">
+					<h3 class="text-sm font-medium">{{ $t('catalogUi.city') }}</h3>
+					<div
+						class="flex flex-wrap gap-2"
+						role="group"
+						:aria-label="$t('catalogUi.city')"
 					>
-						<ChevronDown
-							:class="sortMenuOpen ? 'rotate-180' : ''"
-							class="transition-transform"
+						<Chip
+							v-for="city in products.cities"
+							:key="city.id"
+							:label="city.name"
+							:selected="draftCityId === city.id"
+							:aria-pressed="draftCityId === city.id"
+							:disabled="applyingFilters || products.loading"
+							@click="draftCityId = city.id"
 						/>
-					</IconButton>
-				</template>
-				<div class="p-1">
-					<Button
-						v-for="option in priceSortOptions"
-						:key="option.value"
-						class="w-full justify-start"
-						variant="ghost"
-						@click="selectPriceSort(option.value)"
+					</div>
+				</section>
+				<section class="space-y-3">
+					<h3 class="text-sm font-medium">{{ $t('catalogUi.sortFirst') }}</h3>
+					<div
+						class="flex flex-wrap gap-2"
+						role="group"
+						:aria-label="$t('catalogUi.sortFirst')"
 					>
-						<template #leading>
-							<Check
-								class="size-4"
-								:class="
-									priceSort === option.value ? 'opacity-100' : 'opacity-0'
-								"
-							/>
-						</template>
-						{{ option.label }}
-					</Button>
-				</div>
-			</DropdownMenu>
-		</div>
+						<Chip
+							v-for="option in priceSortOptions"
+							:key="option.value"
+							:label="option.label"
+							:selected="draftPriceSort === option.value"
+							:aria-pressed="draftPriceSort === option.value"
+							:disabled="applyingFilters || products.loading"
+							@click="draftPriceSort = option.value"
+						/>
+					</div>
+				</section>
+				<Button
+					class="mt-auto w-full"
+					label="catalogUi.apply"
+					color="primary"
+					:disabled="applyingFilters || products.loading"
+					@click="applyFilters"
+				/>
+			</div>
+		</Drawer>
 
 		<Spinner v-if="products.loading && !products.products.length" />
 
@@ -348,6 +462,7 @@ onBeforeUnmount(() => {
 			<IconButton
 				v-if="showScrollToTop"
 				class="fixed bottom-5 right-4 z-20 shadow-lg sm:bottom-6 sm:right-6"
+				:style="statusFilter === 'problem' || statusFilter === 'belowMin' || statusFilter === 'atMin' ? { bottom: 'calc(5.5rem + env(safe-area-inset-bottom))' } : undefined"
 				variant="filled"
 				:tooltip="$t('product.scrollToTop')"
 				:aria-label="$t('product.scrollToTop')"
@@ -358,16 +473,3 @@ onBeforeUnmount(() => {
 		</Transition>
 	</div>
 </template>
-
-<style scoped lang="scss">
-swiper-container {
-	width: 100%;
-}
-
-swiper-slide {
-	width: auto !important;
-	height: auto !important;
-	display: flex;
-	align-items: center;
-}
-</style>

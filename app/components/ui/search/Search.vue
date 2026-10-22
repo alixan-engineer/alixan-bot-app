@@ -44,7 +44,7 @@ let shouldSkipNextSearch = false;
 
 const rootClass = computed(() =>
 	cn(
-		'relative min-h-11 w-full overflow-hidden rounded-xl border bg-input/30 hover:border-foreground/20',
+		'relative h-11 min-h-11 w-full overflow-hidden rounded-xl border bg-input/30 hover:border-foreground/20',
 		props.readonly ? 'bg-secondary/60' : '',
 		attrs.class,
 	),
@@ -121,7 +121,7 @@ onBeforeUnmount(() => clearDebounce());
 			:placeholder="placeholder"
 			:autofocus="autofocus"
 			:readonly="readonly"
-			class="size-full bg-transparent px-10 text-base font-normal text-foreground outline-none placeholder:text-muted-foreground"
+			class="block size-full bg-transparent px-10 py-0 text-base font-normal text-foreground outline-none placeholder:text-muted-foreground"
 		/>
 
 		<button

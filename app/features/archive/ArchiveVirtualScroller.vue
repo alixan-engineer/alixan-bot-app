@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { useVirtualizer } from '@tanstack/vue-virtual';
 import type { ComponentPublicInstance } from 'vue';
+import type { Order } from '~/composables/useOrders';
 import type { ArchivedOrder } from '~/composables/useOrderArchive';
 import OrderCard from '~/features/order/OrderCard.vue';
 
 const props = defineProps<{
-	orders: ArchivedOrder[];
+	orders: Array<ArchivedOrder | Order>;
 }>();
 
-const DESKTOP_BREAKPOINT = 1280;
+const DESKTOP_BREAKPOINT = 900;
 const MOBILE_GAP = 12;
 const DESKTOP_GAP = 20;
 
@@ -27,7 +28,7 @@ const gridGap = computed(() =>
 );
 
 const rows = computed(() => {
-	const result: ArchivedOrder[][] = [];
+	const result: Array<Array<ArchivedOrder | Order>> = [];
 
 	for (let index = 0; index < props.orders.length; index += columnCount.value) {
 		result.push(props.orders.slice(index, index + columnCount.value));
@@ -61,15 +62,18 @@ const updateMetrics = (): void => {
 	const containerRect = container.getBoundingClientRect();
 	const scrollerRect = scroller.getBoundingClientRect();
 
-	viewportWidth.value = window.innerWidth;
-	scrollMargin.value = containerRect.top - scrollerRect.top + scroller.scrollTop;
+	viewportWidth.value = container.clientWidth;
+	scrollMargin.value =
+		containerRect.top - scrollerRect.top + scroller.scrollTop;
 };
 
 const measureRow = (
 	element: Element | ComponentPublicInstance | null,
 ): void => {
 	const node =
-		element instanceof HTMLElement ? element : (element?.$el as Element | undefined);
+		element instanceof HTMLElement
+			? element
+			: (element?.$el as Element | undefined);
 
 	if (node instanceof HTMLElement) {
 		rowVirtualizer.value.measureElement(node);
@@ -85,7 +89,9 @@ watch(containerRef, (container) => {
 		return;
 	}
 
-	scrollElement.value = container.closest('main');
+	scrollElement.value = container.closest<HTMLElement>(
+		'[data-order-scroll], main',
+	);
 	updateMetrics();
 	resizeObserver = new ResizeObserver(updateMetrics);
 	resizeObserver.observe(container);

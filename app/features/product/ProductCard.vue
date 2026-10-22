@@ -20,7 +20,7 @@ const viewStatus = computed<ProductViewStatus>(() => {
 
 const lowestPrice = computed(() => {
 	const prices = props.product.stores
-		.map(store => store.currentPrice)
+		.map((store) => store.currentPrice)
 		.filter((price): price is number => typeof price === 'number');
 	return prices.length ? Math.min(...prices) : null;
 });
@@ -54,11 +54,13 @@ const statusView = computed(() => {
 
 const openProduct = (): void => {
 	drawer.open(ProductPriceDialog, {
+		stack: true,
 		width: '620px',
 		height: 'min(90vh, 760px)',
 		position: 'bottom',
 		data: {
 			masterSku: props.product.masterSku,
+			cityId: props.product.cityId,
 			onSaved: props.onSaved,
 		},
 	});

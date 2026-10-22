@@ -1,167 +1,136 @@
 <script setup lang="ts">
-import type { ArchiveStatusFilter } from '~/composables/useOrderArchive';
+import { storeToRefs } from 'pinia';
 import ArchiveVirtualScroller from '~/features/archive/ArchiveVirtualScroller.vue';
+import OrdersGraph from '~/features/orders/OrdersGraph.vue';
+import { buildOrderGraph } from '~/utils/order-graph';
 
 usePageMeta({
 	title: 'seo.pages.archive.title',
 	description: 'seo.pages.archive.description',
 });
-
 const archive = useOrderArchive();
 const toast = useToast();
+const route = useRoute();
 const { locale } = useI18n();
-const search = ref('');
-const swiperContainer = ref<
-	| (HTMLElement & {
-			swiper?: { slideTo: (index: number, speed?: number) => void };
-	  })
-	| null
->(null);
-
-const toDayKey = (value: Date): string => {
-	const formatter = new Intl.DateTimeFormat('en-CA', {
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit',
-		timeZone: 'Asia/Almaty',
-	});
-	const parts = formatter.formatToParts(value);
-	const part = (type: Intl.DateTimeFormatPartTypes) =>
-		parts.find(item => item.type === type)?.value ?? '';
-
-	return `${part('year')}-${part('month')}-${part('day')}`;
-};
-
-const today = toDayKey(new Date());
-const range = ref<{ from: string; to: string } | null>({
-	from: today,
-	to: today,
-});
-const status = ref<ArchiveStatusFilter>('all');
-const filters: Array<{ label: string; value: ArchiveStatusFilter }> = [
-	{ label: 'archive.filters.all', value: 'all' },
-	{ label: 'archive.filters.completed', value: 'completed' },
-	{ label: 'archive.filters.cancelled', value: 'cancelled' },
-	{ label: 'archive.filters.returned', value: 'returned' },
+const { range, selectedTab, loadedRange, failed } = storeToRefs(archive);
+if (route.query.tab === 'graph') selectedTab.value = 4;
+const tabs = [
+	'archive.filters.all',
+	'archive.filters.completed',
+	'archive.filters.cancelled',
+	'archive.filters.returned',
+	'ordersUi.graph',
 ];
-
-const selectStatus = (value: ArchiveStatusFilter, index: number) => {
-	status.value = value;
-	swiperContainer.value?.swiper?.slideTo(index, 300);
-};
-
-const load = async (): Promise<void> => {
-	if (!range.value?.from || !range.value.to) {
-		return;
-	}
-
-	const rangeDays =
-		(Date.parse(range.value.to) - Date.parse(range.value.from)) /
-		(24 * 60 * 60 * 1000);
-	if (rangeDays > 89) {
+const statuses = ['', 'COMPLETED', 'CANCELLED', 'RETURNED'];
+const tabCounts = computed(() =>
+	statuses.map(
+		(status) =>
+			archive.orders.filter((order) => !status || order.status === status)
+				.length,
+	),
+);
+const filteredOrders = computed(() =>
+	archive.orders.filter(
+		(order) =>
+			!statuses[selectedTab.value] ||
+			order.status === statuses[selectedTab.value],
+	),
+);
+const graph = computed(() =>
+	buildOrderGraph(
+		archive.orders,
+		loadedRange.value?.from ?? '',
+		loadedRange.value?.to ?? '',
+	),
+);
+const load = async (force = false) => {
+	if (!range.value?.from || !range.value.to) return;
+	const days =
+		(Date.parse(range.value.to) - Date.parse(range.value.from)) / 86_400_000;
+	if (days < 0 || days > 89) {
 		toast.open('archive.rangeError', 'error');
 		return;
 	}
-
-	await archive.load({
-		from: range.value.from,
-		to: range.value.to,
-		status: status.value,
-	});
+	try {
+		await archive.load({ ...range.value, status: 'all' }, force);
+	} catch {
+		/* useApiFetch displays the error; the store retains the failure state. */
+	}
 };
-
-watch([range, status], load, { deep: true });
+watch(
+	range,
+	() => {
+		void load();
+	},
+	{ deep: true },
+);
 onMounted(load);
-
-const filteredOrders = computed(() => {
-	const query = search.value.trim().toLocaleLowerCase();
-	if (!query) return archive.orders;
-	return archive.orders.filter(order =>
-		[order.orderCode, order.customerName, order.deliveryAddress].some(
-			value => value?.toLocaleLowerCase().includes(query),
-		),
-	);
-});
 </script>
 
 <template>
-	<div class="grid items-end gap-4 lg:grid-cols-[minmax(320px,1fr)_1fr_1fr]">
+	<div class="flex min-w-0 shrink-0 flex-col gap-6">
 		<Calendar
 			v-model="range"
 			:label="$t('calendarLabels.period')"
 			mode="range"
 			:locale="locale"
 			date-format="dd.mm.yyyy"
+			class="max-w-xl"
 		/>
-
-		<div class="grid grid-cols-2 gap-3 lg:contents">
+		<div class="grid grid-cols-2 gap-3 sm:gap-4" :aria-busy="archive.loading">
 			<Island
 				class="h-full"
-				content-class="flex h-full min-h-20 flex-col justify-center gap-0.5 px-4 py-3 sm:gap-1 sm:px-5 sm:py-4"
+				content-class="flex h-full flex-col justify-between gap-2 p-4 sm:p-5"
 			>
-				<p class="min-h-10 text-sm leading-5 text-muted-foreground">
+				<p class="text-sm text-muted-foreground">
 					{{ $t('archive.completedCount') }}
 				</p>
 				<p class="text-xl font-semibold sm:text-2xl">
-					{{ archive.summary.completedCount }}
+					{{ archive.loading || failed ? '—' : archive.summary.completedCount }}
 				</p>
 			</Island>
-
 			<Island
 				class="h-full"
-				content-class="flex h-full min-h-20 flex-col justify-center gap-0.5 px-4 py-3 sm:gap-1 sm:px-5 sm:py-4"
+				content-class="flex h-full flex-col justify-between gap-2 p-4 sm:p-5"
 			>
-				<p class="min-h-10 text-sm leading-5 text-muted-foreground">
+				<p class="text-sm text-muted-foreground">
 					{{ $t('archive.completedAmount') }}
 				</p>
 				<p class="text-xl font-semibold sm:text-2xl">
-					<Price :value="archive.summary.completedAmount" />
+					<span v-if="archive.loading || failed">—</span
+					><Price v-else :value="archive.summary.completedAmount" />
 				</p>
 			</Island>
 		</div>
-	</div>
-
-	<swiper-container
-		ref="swiperContainer"
-		free-mode
-		slides-per-view="auto"
-		space-between="8"
-		class="block min-w-0 max-w-full"
-	>
-		<swiper-slide v-for="(filter, index) in filters" :key="filter.value">
-			<Chip
-				:label="$t(filter.label)"
-				:selected="status === filter.value"
-				@click="selectStatus(filter.value, index)"
+		<Tabs
+			v-model="selectedTab"
+			:tabs="tabs"
+			:counts="tabCounts"
+			design="material"
+			full
+		/>
+		<Spinner v-if="archive.loading" />
+		<Empty
+			v-else-if="failed"
+			title="ordersUi.loadError"
+			description="ordersUi.tryAgain"
+			button="ordersUi.retry"
+			@action="load(true)"
+		/>
+		<template v-else>
+			<InfoBox v-if="archive.errors.length">{{
+				$t('ordersUi.partialError')
+			}}</InfoBox>
+			<OrdersGraph v-if="selectedTab === 4" :data="graph" />
+			<ArchiveVirtualScroller
+				v-else-if="filteredOrders.length"
+				:orders="filteredOrders"
 			/>
-		</swiper-slide>
-	</swiper-container>
-
-	<Search v-model="search" :placeholder="$t('order.search')" />
-
-	<Spinner v-if="archive.loading" />
-
-	<ArchiveVirtualScroller
-		v-else-if="filteredOrders.length"
-		:orders="filteredOrders"
-	/>
-
-	<Empty
-		v-else
-		title="archive.empty.title"
-		description="archive.empty.description"
-	/>
+			<Empty
+				v-else
+				title="archive.empty.title"
+				description="archive.empty.description"
+			/>
+		</template>
+	</div>
 </template>
-
-<style scoped lang="scss">
-swiper-container {
-	width: 100%;
-}
-
-swiper-slide {
-	width: auto !important;
-	height: auto !important;
-	display: flex;
-	align-items: center;
-}
-</style>

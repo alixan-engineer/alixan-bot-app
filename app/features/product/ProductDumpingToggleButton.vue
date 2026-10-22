@@ -51,7 +51,7 @@ const confirmToggle = () => {
 					const nextStatus = isEnabled ? 'disable' : 'enable';
 					const updated = await products.updateProduct(
 						props.product.masterSku,
-						{ status: nextStatus },
+						{ status: nextStatus, cityId: props.product.cityId },
 					);
 					emit('updated', updated);
 					await props.onSaved?.();

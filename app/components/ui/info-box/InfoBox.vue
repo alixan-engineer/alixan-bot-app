@@ -18,8 +18,11 @@ withDefaults(defineProps<InfoBoxProps>(), {
 		>
 			<component :is="icon" class="size-5" />
 		</span>
-		<p class="min-w-0 text-base leading-7">
+		<p class="min-w-0 flex-1 text-base leading-7">
 			<slot />
 		</p>
+		<div v-if="$slots.trailing" class="flex shrink-0 items-center">
+			<slot name="trailing" />
+		</div>
 	</Island>
 </template>

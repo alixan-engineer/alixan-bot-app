@@ -2,7 +2,6 @@
 import { useSidebar } from '@/composables/useSidebar';
 import {
 	Archive,
-	BarChart3,
 	Box,
 	Boxes,
 	Download,
@@ -21,6 +20,7 @@ const userStore = useUser();
 userStore.getUserByToken();
 
 const sidebar = useSidebar();
+const { trailing } = provideAppBarActions();
 
 const sections = computed(() => [
 	{
@@ -36,12 +36,11 @@ const sections = computed(() => [
 	{
 		label: 'nav.ordersSection',
 		pages: [
-			{ id: '/orders', title: 'nav.telegramOrders', icon: Send },
 			{ id: '/archive', title: 'nav.kaspiOrders', icon: Archive },
-			{ id: '/schedule-orders', title: 'nav.ordersGraph', icon: BarChart3 },
 			...(userStore.user?.orderBotEnabled
 				? [{ id: '/order-bot-settings', title: 'nav.settings', icon: Settings }]
 				: []),
+			{ id: '/orders', title: 'nav.telegramOrders', icon: Send },
 		],
 	},
 	{
@@ -75,8 +74,8 @@ const sections = computed(() => [
 const route = useRoute();
 const selected = computed(() =>
 	sections.value
-		.flatMap(section => section.pages)
-		.find(page => page.id === route.path),
+		.flatMap((section) => section.pages)
+		.find((page) => page.id === route.path),
 );
 
 const selectPage = (id: string) => {
@@ -113,7 +112,19 @@ const selectPage = (id: string) => {
 						</template>
 
 						<template #trailing>
-							<UserMenu />
+							<div v-if="trailing.length" class="flex items-center gap-1">
+								<IconButton
+									v-for="action in trailing"
+									:key="action.label"
+									variant="ghost"
+									:aria-label="$t(action.label)"
+									:tooltip="$t(action.label)"
+									@click="action.onClick"
+								>
+									<component :is="action.icon" />
+								</IconButton>
+							</div>
+							<UserMenu v-else />
 						</template>
 					</AppBar>
 				</template>

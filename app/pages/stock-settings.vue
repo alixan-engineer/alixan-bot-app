@@ -117,7 +117,7 @@ onMounted(async () => {
 		</Island>
 
 		<section class="space-y-4 mt-8">
-			<p class="text-xl font-semibold ml-6">
+			<p class="text-xl font-semibold ml-3.5">
 				{{ $t('stockSettings.faq.title') }}
 			</p>
 			<Accordion v-model="activeFaq" :items="faqItems" />

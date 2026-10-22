@@ -10,6 +10,7 @@
 			</main>
 		</div>
 
+		<div id="scaffold-footer" class="relative z-10 shrink-0" />
 		<slot name="bottom-navigation-bar" />
 	</div>
 </template>

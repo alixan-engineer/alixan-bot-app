@@ -1,6 +1,5 @@
 import type { Component } from 'vue';
-import { markRaw } from 'vue';
-import { shallowRef } from 'vue';
+import { computed, markRaw, shallowReadonly, shallowRef } from 'vue';
 
 export type DrawerPosition = 'top' | 'right' | 'bottom' | 'left';
 
@@ -10,30 +9,34 @@ export interface DrawerOpenOptions {
 	title?: string;
 	position?: DrawerPosition;
 	data?: unknown;
+	stack?: boolean;
 }
 
 interface DrawerState {
+	id: number;
 	component: Component;
 	options: DrawerOpenOptions;
 }
 
-const drawerState = shallowRef<DrawerState | null>(null);
+const drawerStack = shallowRef<DrawerState[]>([]);
+let drawerId = 0;
 
 export const useDrawer = () => {
 	const open = (component: Component, options: DrawerOpenOptions = {}) => {
-		drawerState.value = {
-			component: markRaw(component),
-			options,
-		};
+		const item = { id: ++drawerId, component: markRaw(component), options };
+		drawerStack.value = options.stack ? [...drawerStack.value, item] : [item];
 	};
 
-	const close = () => {
-		drawerState.value = null;
+	const close = (id?: number) => {
+		const top = drawerStack.value.at(-1);
+		if (id !== undefined && top?.id !== id) return;
+		drawerStack.value = drawerStack.value.slice(0, -1);
 	};
 
 	return {
 		close,
 		open,
-		state: drawerState,
+		state: computed(() => drawerStack.value.at(-1) ?? null),
+		stack: shallowReadonly(drawerStack),
 	};
 };

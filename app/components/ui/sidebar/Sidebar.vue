@@ -65,7 +65,9 @@ const selectPage = (page: SidebarPage) => {
 					:key="section.label"
 					class="space-y-1"
 				>
-					<p class="px-3 text-xs font-semibold uppercase text-muted-foreground">
+					<p
+						class="ml-1 px-3 text-xs font-semibold uppercase text-muted-foreground"
+					>
 						{{ $t(section.label) }}
 					</p>
 

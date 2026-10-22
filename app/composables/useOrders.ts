@@ -53,8 +53,12 @@ export const useOrders = defineStore('orders', () => {
 	const statuses = ref<StoreOrderStatus[]>([]);
 	const loading = ref(false);
 
-	const getOrders = async () => {
-		orders.value = await useApiFetch<Order[]>('orders');
+	let requestId = 0;
+	const getOrders = async (range?: { from: string; to: string }) => {
+		const id = ++requestId;
+		const query = range ? `?${new URLSearchParams(range)}` : '';
+		const response = await useApiFetch<Order[]>(`orders${query}`);
+		if (id === requestId) orders.value = response;
 		return orders.value;
 	};
 

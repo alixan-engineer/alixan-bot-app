@@ -10,6 +10,7 @@ import ProductConfigDialog from './ProductConfigDialog.vue';
 const props = defineProps<{
 	data?: {
 		masterSku?: string;
+		cityId?: string;
 		onSaved?: () => Promise<void> | void;
 	};
 	close: () => void;
@@ -19,6 +20,14 @@ const products = useProducts();
 const dialog = useDialog();
 const loading = ref(false);
 const tab = ref(0);
+const selectedCity = ref(props.data?.cityId ?? products.cityId);
+const cityOptions = computed(() =>
+	(product.value?.cities ?? products.cities).map(city => ({
+		label: city.name,
+		value: city.id,
+	})),
+);
+let requestId = 0;
 const product = ref<Product | null>(null);
 const logs = ref<PriceChangeLog[]>([]);
 const offers = ref<KaspiOffer[]>([]);
@@ -39,28 +48,49 @@ const isOwnOffer = (offer: KaspiOffer) =>
 
 const loadProduct = async () => {
 	if (!props.data?.masterSku) return;
+	const id = ++requestId;
+	const city = selectedCity.value;
+	const masterSku = props.data.masterSku;
+	loading.value = true;
+	offersLoading.value = true;
+	offers.value = [];
+	logs.value = [];
+	const offersTask = products
+		.getOffers(masterSku, city)
+		.then(result => {
+			if (id === requestId) offers.value = result;
+		})
+		.catch(() => {
+			/* useApiFetch displays the error. */
+		})
+		.finally(() => {
+			if (id === requestId) offersLoading.value = false;
+		});
 	try {
-		loading.value = true;
 		const [nextProduct, nextLogs] = await Promise.all([
-			products.getProduct(props.data.masterSku),
-			products.getLogs({
-				masterSku: props.data.masterSku,
-			}),
+			products.getProduct(masterSku, city),
+			products.getLogs({ masterSku, cityId: city }),
 		]);
+		if (id !== requestId) return;
 		product.value = nextProduct;
 		logs.value = nextLogs;
-	} finally {
-		loading.value = false;
-	}
-
-	offersLoading.value = true;
-	try {
-		offers.value = await products.getOffers(props.data.masterSku);
 	} catch {
-		offers.value = [];
+		if (id === requestId) product.value = null;
 	} finally {
-		offersLoading.value = false;
+		if (id === requestId) loading.value = false;
 	}
+	await offersTask;
+};
+watch(selectedCity, () => {
+	void loadProduct();
+});
+onBeforeUnmount(() => {
+	requestId += 1;
+});
+
+const onProductSaved = async () => {
+	await loadProduct();
+	await props.data?.onSaved?.();
 };
 
 const openPriceRange = () => {
@@ -71,10 +101,7 @@ const openPriceRange = () => {
 		title: 'product.changePriceRange',
 		data: {
 			product: product.value,
-			onSaved: async () => {
-				await loadProduct();
-				await props.data?.onSaved?.();
-			},
+			onSaved: onProductSaved,
 		},
 	});
 };
@@ -106,10 +133,19 @@ onMounted(loadProduct);
 			/>
 		</div>
 
-		<h2 class="line-clamp-2 p-4 text-lg font-semibold leading-6 sm:text-xl">
-			{{ product.masterTitle || product.masterSku }}
-		</h2>
-    <p class="px-4 pb-3 text-sm text-muted-foreground">{{ product.cities.find(city => city.id === product.cityId)?.name }}</p>
+		<div class="p-4">
+			<h2 class="line-clamp-2 text-lg font-semibold leading-6 sm:text-xl">
+				{{ product.masterTitle || product.masterSku }}
+			</h2>
+		</div>
+		<div class="px-4">
+			<Select
+				v-model="selectedCity"
+				:options="cityOptions"
+				label="catalogUi.city"
+				:aria-label="$t('catalogUi.city')"
+			/>
+		</div>
 
 		<Tabs
 			v-model="tab"
@@ -222,7 +258,7 @@ onMounted(loadProduct);
 				<ProductDumpingToggleButton
 					class="w-full"
 					:product="product"
-					:on-saved="props.data?.onSaved"
+					:on-saved="onProductSaved"
 					@updated="product = $event"
 				/>
 			</div>
