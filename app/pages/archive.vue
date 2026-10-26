@@ -102,7 +102,7 @@ onMounted(load);
 				</p>
 			</Island>
 		</div>
-		<Tabs
+		<SwipeTabs
 			v-model="selectedTab"
 			:tabs="tabs"
 			:counts="tabCounts"

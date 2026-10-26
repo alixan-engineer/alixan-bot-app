@@ -189,7 +189,7 @@ onBeforeUnmount(() => {
 		</p>
 	</Island>
 	<section class="mt-8 space-y-4">
-		<h2 class="ml-6 text-xl font-semibold">
+		<h2 class="ml-3 text-xl font-semibold">
 			{{ $t('productSync.faq.title') }}
 		</h2>
 		<Accordion v-model="activeFaq" :items="faqItems">

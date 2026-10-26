@@ -17,7 +17,11 @@ const dialog = useDialog();
 const users = ref<User[]>([]);
 const loading = ref(false);
 const visibleUsers = computed(() =>
-	users.value.filter(user => user._id !== currentUser.user?._id),
+	[...users.value].sort(
+		(left, right) =>
+			Number(right._id === currentUser.user?._id) -
+			Number(left._id === currentUser.user?._id),
+	),
 );
 
 const load = async () => {
@@ -109,7 +113,15 @@ onMounted(load);
 				<Avatar :name="user.name" />
 			</template>
 			<template #title>
-				{{ user.name }}
+				<span class="flex flex-wrap items-center gap-2">
+					<span>{{ user.name }}</span>
+					<span
+						v-if="user._id === currentUser.user?._id"
+						class="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-muted-foreground"
+					>
+						{{ $t('users.currentAccount') }}
+					</span>
+				</span>
 			</template>
 			<template #description>
 				<p>{{ phonePipe(user.phone) }}</p>
@@ -117,7 +129,7 @@ onMounted(load);
 					{{ user.role === 'admin' ? 'Администратор' : 'Работник' }}
 				</p>
 			</template>
-			<template #trailing>
+			<template v-if="user._id !== currentUser.user?._id" #trailing>
 				<IconButton
 					variant="outlined"
 					:tooltip="

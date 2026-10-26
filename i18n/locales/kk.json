@@ -196,9 +196,9 @@
 		"previousMonth": "Алдыңғы ай",
 		"nextMonth": "Келесі ай",
 		"last7Days": "7 күн",
+		"last14Days": "14 күн",
 		"last30Days": "30 күн",
-		"last6Months": "6 ай",
-		"lastYear": "Жыл"
+		"last3Months": "3 ай"
 	},
 	"priceBot": {
 		"controlTitle": "Price Bot басқару",
@@ -241,6 +241,7 @@
 		}
 	},
 	"users": {
+		"currentAccount": "Бұл сіз",
 		"makeWorkerConfirm": {
 			"title": "Рөлі қызметкерге өзгертілсін бе?",
 			"description": "Пайдаланушы басқа пайдаланушыларды басқара алмайды."
@@ -630,6 +631,7 @@
 			"title": "Telegram тапсырыстарын қосыңыз",
 			"description": "Тапсырыстарға арналған Telegram арнасы қажет болса, өтінім жіберіңіз. Әкімшілеріміз тапсырыстарды көруге арналған жеке Telegram арнасын баптайды.",
 			"submit": "Өтінім жіберу",
+			"confirmSubmit": "Жіберу",
 			"confirmTitle": "Өтінімді жіберу керек пе?",
 			"confirmDescription": "Әкімшілер тапсырыстарға арналған жеке Telegram арнасын қосу туралы өтінімді алады.",
 			"success": "Өтінім жіберілді"

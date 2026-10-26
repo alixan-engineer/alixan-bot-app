@@ -339,7 +339,7 @@ onBeforeUnmount(() => {
 				</IconButton>
 			</template>
 		</InfoBox>
-		<Tabs
+		<SwipeTabs
 			v-model="selectedTab"
 			:tabs="mainFilters.map((filter) => filter.label)"
 			:counts="mainFilters.map((filter) => filter.count)"

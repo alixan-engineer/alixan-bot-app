@@ -197,9 +197,9 @@
 		"previousMonth": "Предыдущий месяц",
 		"nextMonth": "Следующий месяц",
 		"last7Days": "7 д",
+		"last14Days": "14 д",
 		"last30Days": "30 д",
-		"last6Months": "6 мес",
-		"lastYear": "Год"
+		"last3Months": "3 мес"
 	},
 	"priceBot": {
 		"controlTitle": "Управление Price Bot",
@@ -242,6 +242,7 @@
 		}
 	},
 	"users": {
+		"currentAccount": "Это вы",
 		"makeWorkerConfirm": {
 			"title": "Сделать работником?",
 			"description": "Пользователь потеряет доступ к управлению другими пользователями."
@@ -631,6 +632,7 @@
 			"title": "Подключите заказы в Telegram",
 			"description": "Если Вам нужен Telegram-канал с заказами, отправьте заявку. Наши администраторы настроят для Вас личный Telegram-канал, где Вы сможете смотреть заказы.",
 			"submit": "Отправить заявку",
+			"confirmSubmit": "Отправить",
 			"confirmTitle": "Отправить заявку?",
 			"confirmDescription": "Администраторы получат заявку на подключение личного Telegram-канала для заказов.",
 			"success": "Заявка отправлена"

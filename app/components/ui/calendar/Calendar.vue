@@ -5,7 +5,7 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { cn } from '~/utils/cn';
 
 type CalendarMode = 'day' | 'range';
-type RangePresetValue = '7d' | '30d' | '6m' | '1y';
+type RangePresetValue = '7d' | '14d' | '30d' | '3m';
 
 interface CalendarProps {
 	label?: string;
@@ -52,9 +52,9 @@ const selectedPreset = ref<RangePresetValue | null>(null);
 
 const rangePresets: RangePreset[] = [
 	{ label: 'calendarLabels.last7Days', value: '7d' },
+	{ label: 'calendarLabels.last14Days', value: '14d' },
 	{ label: 'calendarLabels.last30Days', value: '30d' },
-	{ label: 'calendarLabels.last6Months', value: '6m' },
-	{ label: 'calendarLabels.lastYear', value: '1y' },
+	{ label: 'calendarLabels.last3Months', value: '3m' },
 ];
 
 const weekDays = computed(() =>
@@ -142,13 +142,6 @@ const displayValue = computed(() => {
 const addDays = (date: Date, days: number): Date => {
 	const nextDate = new Date(date);
 	nextDate.setDate(nextDate.getDate() + days);
-
-	return nextDate;
-};
-
-const addMonths = (date: Date, months: number): Date => {
-	const nextDate = new Date(date);
-	nextDate.setMonth(nextDate.getMonth() + months);
 
 	return nextDate;
 };
@@ -281,16 +274,17 @@ const applyRangePreset = (value: RangePresetValue | null): void => {
 		fromDate = addDays(today, -6);
 	}
 
+	if (value === '14d') {
+		fromDate = addDays(today, -13);
+	}
+
 	if (value === '30d') {
 		fromDate = addDays(today, -29);
 	}
 
-	if (value === '6m') {
-		fromDate = addMonths(today, -6);
-	}
-
-	if (value === '1y') {
-		fromDate = addMonths(today, -12);
+	if (value === '3m') {
+		// Keep the inclusive range within Kaspi's 90-day archive limit.
+		fromDate = addDays(today, -89);
 	}
 
 	const range = {

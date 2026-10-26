@@ -196,9 +196,9 @@
 		"previousMonth": "Previous month",
 		"nextMonth": "Next month",
 		"last7Days": "7 days",
+		"last14Days": "14 days",
 		"last30Days": "30 days",
-		"last6Months": "6 months",
-		"lastYear": "Year"
+		"last3Months": "3 months"
 	},
 	"priceBot": {
 		"controlTitle": "Price Bot controls",
@@ -241,6 +241,7 @@
 		}
 	},
 	"users": {
+		"currentAccount": "You",
 		"makeWorkerConfirm": {
 			"title": "Change role to worker?",
 			"description": "The user will no longer be able to manage other users."
@@ -630,6 +631,7 @@
 			"title": "Connect Telegram orders",
 			"description": "If you need a Telegram channel with orders, send a request. Our administrators will set up a private Telegram channel where you can view your orders.",
 			"submit": "Send request",
+			"confirmSubmit": "Send",
 			"confirmTitle": "Send the request?",
 			"confirmDescription": "Administrators will receive your request to connect a private Telegram channel for orders.",
 			"success": "Request sent"

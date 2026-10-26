@@ -24,7 +24,7 @@ const reload = () => products.getProducts();
 		<div class="shrink-0 space-y-4 border-b p-4 sm:p-6">
 			<Search v-model="search" :placeholder="$t('product.search')" autofocus />
 			<p class="text-sm text-muted-foreground">
-				{{ $t('catalogUi.searchHint') }}
+				{{ $t('catalogUi.found', { count: results.length }) }}
 			</p>
 		</div>
 		<div
@@ -33,9 +33,6 @@ const reload = () => products.getProducts();
 		>
 			<Spinner v-if="products.loading" />
 			<template v-else>
-				<p class="text-sm text-muted-foreground">
-					{{ $t('catalogUi.found', { count: results.length }) }}
-				</p>
 				<ProductVirtualScroller
 					v-if="results.length"
 					:products="results"

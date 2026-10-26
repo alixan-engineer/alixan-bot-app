@@ -123,7 +123,7 @@ onMounted(loadProduct);
 	<Spinner v-if="loading" />
 
 	<div v-else-if="product" class="overflow-y-auto scrollbar-none">
-		<div class="h-72 mx-3 rounded-3xl overflow-hidden">
+		<div class="h-72 mx-1 rounded-3xl overflow-hidden">
 			<img
 				v-if="product.images?.[0]"
 				:src="product.images[0]"
@@ -138,19 +138,12 @@ onMounted(loadProduct);
 				{{ product.masterTitle || product.masterSku }}
 			</h2>
 		</div>
-		<div class="px-4">
-			<Select
-				v-model="selectedCity"
-				:options="cityOptions"
-				label="catalogUi.city"
-				:aria-label="$t('catalogUi.city')"
-			/>
-		</div>
 
-		<Tabs
+		<SwipeTabs
 			v-model="tab"
 			full
 			class="px-4"
+			:counts="[offers.length]"
 			:tabs="[
 				'product.tabs.sellers',
 				'product.tabs.dumping',
@@ -160,30 +153,13 @@ onMounted(loadProduct);
 
 		<div class="p-4 pb-6">
 			<div v-if="tab === 0" class="space-y-4">
+				<Select
+					v-model="selectedCity"
+					:options="cityOptions"
+					label="catalogUi.city"
+					:aria-label="$t('catalogUi.city')"
+				/>
 				<div class="space-y-3">
-					<div class="flex flex-wrap items-center justify-between gap-3">
-						<div>
-							<p class="text-lg font-semibold">
-								{{ $t('product.kaspiSellerPrices') }}
-							</p>
-							<p class="text-sm text-muted-foreground">
-								{{ $t('product.offersFound', { count: offers.length }) }}
-							</p>
-						</div>
-						<Button
-							size="sm"
-							variant="filled"
-							color="secondary"
-							label="product.openInKaspi"
-							:href="kaspiUrl || undefined"
-							target="_blank"
-						>
-							<template #trailing>
-								<ExternalLink class="size-4" />
-							</template>
-						</Button>
-					</div>
-
 					<div
 						v-if="offersLoading"
 						class="flex min-h-32 items-center justify-center"
@@ -227,6 +203,18 @@ onMounted(loadProduct);
 						description="product.offersEmpty.description"
 					/>
 				</div>
+				<Button
+					class="w-full"
+					variant="filled"
+					color="destructive"
+					label="product.openInKaspi"
+					:href="kaspiUrl || undefined"
+					target="_blank"
+				>
+					<template #trailing>
+						<ExternalLink class="size-4" />
+					</template>
+				</Button>
 			</div>
 
 			<div v-else-if="tab === 1" class="space-y-3">

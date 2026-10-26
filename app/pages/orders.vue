@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Search as SearchIcon } from '@lucide/vue';
-import TelegramOrderSearchDrawer from '~/features/orders/TelegramOrderSearchDrawer.vue';
-import ArchiveVirtualScroller from '~/features/archive/ArchiveVirtualScroller.vue';
-import { toAlmatyDay } from '~/utils/order-graph';
 import ConfirmDialog from '~/components/ui/confirm-dialog/ConfirmDialog.vue';
+import ArchiveVirtualScroller from '~/features/archive/ArchiveVirtualScroller.vue';
+import TelegramOrderSearchDrawer from '~/features/orders/TelegramOrderSearchDrawer.vue';
+import { toAlmatyDay } from '~/utils/order-graph';
 
 usePageMeta({
 	title: 'seo.pages.orders.title',
@@ -33,7 +33,7 @@ const statusValues = [
 ];
 const tabs = [
 	'archive.filters.all',
-	...statusValues.slice(1).map((status) => `order.telegramStatus.${status}`),
+	...statusValues.slice(1).map(status => `order.telegramStatus.${status}`),
 ];
 const openSearch = () =>
 	drawer.open(TelegramOrderSearchDrawer, {
@@ -58,7 +58,7 @@ useAppBarActions(() =>
 );
 
 const periodOrders = computed(() =>
-	orders.orders.filter((order) => {
+	orders.orders.filter(order => {
 		const day = toAlmatyDay(order.createdAt);
 		return (
 			range.value?.from &&
@@ -70,7 +70,7 @@ const periodOrders = computed(() =>
 );
 const selectedOrders = computed(() =>
 	periodOrders.value.filter(
-		(order) =>
+		order =>
 			!statusValues[selectedTab.value] ||
 			order.telegramStatus === statusValues[selectedTab.value],
 	),
@@ -113,12 +113,12 @@ const sendConnectionRequest = async () => {
 const confirmConnectionRequest = () => {
 	dialog.open(ConfirmDialog, {
 		width: '400px',
-		height: '280px',
+		height: '240px',
 		data: {
 			title: 'order.connectionRequest.confirmTitle',
 			description: 'order.connectionRequest.confirmDescription',
 			cancelLabel: 'common.cancel',
-			submitLabel: 'order.connectionRequest.submit',
+			submitLabel: 'order.connectionRequest.confirmSubmit',
 			onSubmit: sendConnectionRequest,
 		},
 	});
@@ -148,16 +148,22 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<div class="flex min-w-0 shrink-0 flex-col gap-6">
+	<div class="flex min-w-0 flex-1 shrink-0 flex-col gap-6">
 		<Spinner v-if="initialLoading" />
 
-		<Empty
+		<div
 			v-else-if="!orderBotEnabled"
-			title="order.connectionRequest.title"
-			description="order.connectionRequest.description"
-			button="order.connectionRequest.submit"
-			@action="confirmConnectionRequest"
-		/>
+			class="flex flex-1 items-center justify-center"
+		>
+			<Island class="w-full max-w-xl" content-class="px-6 py-10">
+				<Empty
+					title="order.connectionRequest.title"
+					description="order.connectionRequest.description"
+					button="order.connectionRequest.submit"
+					@action="confirmConnectionRequest"
+				/>
+			</Island>
+		</div>
 
 		<template v-else>
 			<Calendar
@@ -192,10 +198,11 @@ onBeforeUnmount(() => {
 					</p>
 				</Island>
 			</div>
-			<Tabs v-model="selectedTab" :tabs="tabs" design="material" full />
+			<SwipeTabs v-model="selectedTab" :tabs="tabs" design="material" full />
 			<Spinner v-if="refreshing" />
 			<Empty
 				v-else-if="loadFailed"
+				class="h-auto flex-1"
 				title="ordersUi.loadError"
 				description="ordersUi.tryAgain"
 				button="ordersUi.retry"
@@ -207,6 +214,7 @@ onBeforeUnmount(() => {
 			/>
 			<Empty
 				v-else
+				class="h-auto flex-1"
 				title="order.empty.title"
 				description="order.empty.description"
 			/>

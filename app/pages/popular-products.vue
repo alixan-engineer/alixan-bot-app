@@ -17,11 +17,11 @@ const toDay = (date: Date) =>
 		timeZone: 'Asia/Almaty',
 	}).format(date);
 const today = new Date();
-const monthAgo = new Date(today);
-monthAgo.setDate(monthAgo.getDate() - 29);
+const weekAgo = new Date(today);
+weekAgo.setDate(weekAgo.getDate() - 6);
 
 const range = ref<{ from: string; to: string } | null>({
-	from: toDay(monthAgo),
+	from: toDay(weekAgo),
 	to: toDay(today),
 });
 

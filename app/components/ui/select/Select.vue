@@ -160,7 +160,7 @@ onBeforeUnmount(closeSelect);
 		:class="
 			cn(
 				'relative w-full',
-				label ? 'min-h-20' : '',
+				label && visibleError ? 'min-h-20' : '',
 				visibleError ? 'space-y-1' : '',
 				$attrs.class,
 			)
