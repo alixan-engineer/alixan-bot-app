@@ -4,7 +4,7 @@
 			class="size-8 flex items-center justify-center overflow-hidden rounded-md"
 		>
 			<img
-				src="/icons/icon-512.webp"
+				src="/icons/icon-512.png"
 				alt="Kaspi bot"
 				class="size-12 object-cover"
 				loading="lazy"

@@ -7,7 +7,7 @@ export const favicon = [
 	},
 	{
 		rel: 'apple-touch-icon',
-		href: '/icons/apple-touch-icon.webp',
+		href: '/icons/apple-touch-icon.png',
 	},
 	{
 		rel: 'manifest',
