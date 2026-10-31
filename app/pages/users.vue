@@ -36,7 +36,7 @@ const load = async () => {
 const openCreateDialog = () => {
 	dialog.open(AddUserDialog, {
 		width: '500px',
-		height: '500px',
+		height: '560px',
 		title: 'Добавить пользователя',
 		data: { onCreated: load },
 	});

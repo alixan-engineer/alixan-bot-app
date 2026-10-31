@@ -9,6 +9,7 @@ const props = defineProps<{
 	close: () => void;
 }>();
 
+const name = ref('');
 const phone = ref('');
 const password = ref('');
 const loading = ref(false);
@@ -20,7 +21,11 @@ const createUser = async () => {
 	try {
 		created.value = await useApiFetch<CreatedUser>('users', {
 			method: 'POST',
-			body: { phone: phone.value.trim(), password: password.value },
+			body: {
+				name: name.value.trim(),
+				phone: phone.value.trim(),
+				password: password.value,
+			},
 		});
 		copied.value = false;
 		await props.data?.onCreated?.();
@@ -46,13 +51,13 @@ const copyCredentials = async () => {
 			@submit.prevent="createUser"
 		>
 			<InfoBox class="mb-8">
-				Введите номер пользователя, которого хотите добавить.
+				Введите имя и номер пользователя, которого хотите добавить.
 			</InfoBox>
+			<Input v-model="name" label="Имя" required :min="2" minlength="2" />
 			<PhoneInput v-model="phone" required />
-			<Input
+			<PasswordInput
 				v-model="password"
 				label="Придумайте пароль"
-				type="password"
 				required
 				:min="8"
 			/>
