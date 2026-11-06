@@ -1,43 +1,31 @@
 <script setup lang="ts">
+import { ChevronRight } from '@lucide/vue';
+import SettingValueDialog from '~/features/settings/SettingValueDialog.vue';
+
 usePageMeta({
 	title: 'seo.pages.orderBot.title',
 	description: 'seo.pages.orderBot.description',
 });
-
 const botSettings = useBotSettings();
 const userStore = useUser();
-const toast = useToast();
-const loader = useGlobalLoader();
-const orderSendStartHour = ref<string | number>(6);
-const autoDispatchExpressOrders = ref(true);
-const orderSendStartHourOptions = [4, 5, 6, 7].map(hour => ({
-	label: `${String(hour).padStart(2, '0')}:00`,
-	value: hour,
-}));
-
-const orderBotEnabled = computed(
-	() => botSettings.settings?.telegramEnabled ?? false,
+const dialog = useDialog();
+const startHour = computed(
+	() =>
+		`${String(botSettings.settings?.orderSendStartHour ?? 6).padStart(
+			2,
+			'0',
+		)}:00`,
 );
-const syncForm = () => {
-	const settings = botSettings.settings;
-	orderSendStartHour.value = settings?.orderSendStartHour ?? 6;
-	autoDispatchExpressOrders.value = settings?.autoDispatchExpressOrders ?? true;
-};
-
-const save = async () => {
-	try {
-		loader.show();
-		await botSettings.updateSettings({
-			orderSendStartHour: Number(orderSendStartHour.value),
-			autoDispatchExpressOrders: autoDispatchExpressOrders.value,
-		});
-		syncForm();
-		toast.open('telegram.saved', 'success');
-	} finally {
-		loader.hide();
-	}
-};
-
+const openStartHour = () =>
+	dialog.open(SettingValueDialog, {
+		width: '440px',
+		height: 'auto',
+		title: 'orderBot.sendStartHour',
+		data: {
+			field: 'orderSendStartHour',
+			value: botSettings.settings?.orderSendStartHour ?? 6,
+		},
+	});
 onMounted(async () => {
 	await userStore.getUserByToken();
 	if (!userStore.user?.orderBotEnabled) {
@@ -45,57 +33,46 @@ onMounted(async () => {
 		return;
 	}
 	await botSettings.getSettings();
-	syncForm();
 });
 </script>
 
 <template>
 	<Spinner v-if="botSettings.loading && !botSettings.settings" />
-
-	<template v-else>
-		<BotControl
-			title="orderBot.controlTitle"
-			description="orderBot.controlDescription"
-		>
-			<OrderBotToggleButton :enabled="orderBotEnabled" />
-		</BotControl>
-
-		<Island content-class="flex flex-col gap-4 p-3.5 sm:gap-6 sm:p-6">
-			<p class="text-xl font-semibold">
-				{{ $t('orderBot.autoDispatchTitle') }}
-			</p>
-
-			<div>
-				<Checkbox
-					v-model="autoDispatchExpressOrders"
-					:label="$t('orderBot.autoDispatchExpressOrders')"
-				/>
-				<p class="mt-1 pl-8 text-sm text-muted-foreground">
-					{{ $t('orderBot.autoDispatchExpressOrdersDescription') }}
-				</p>
-			</div>
+	<div v-else class="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-6">
+		<Island content-class="p-0">
+			<List>
+				<ListTile
+					title="settings.tabs.orderBot"
+					description="orderBot.controlDescription"
+				>
+					<template #trailing
+						><OrderBotToggleButton
+							:enabled="botSettings.settings?.telegramEnabled ?? false"
+					/></template>
+				</ListTile>
+			</List>
 		</Island>
-
-		<Island content-class="flex flex-col gap-4 p-3.5 sm:gap-6 sm:p-6">
-			<div>
-				<p class="text-xl font-semibold">
-					{{ $t('orderBot.sendStartHour') }}
-				</p>
-				<p class="mt-1 text-base text-muted-foreground">
-					{{ $t('orderBot.sendStartHourDescription') }}
-				</p>
-			</div>
-
-			<div class="flex items-start md:gap-6 max-md:flex-col">
-				<Select
-					v-model="orderSendStartHour"
-					label="orderBot.sendStartHour"
-					:options="orderSendStartHourOptions"
+		<Island title="settings.orderPreferences" content-class="p-0">
+			<List>
+				<SettingSwitchRow
+					field="autoDispatchExpressOrders"
+					title="orderBot.autoDispatchExpressOrders"
+					description="orderBot.autoDispatchExpressOrdersDescription"
 				/>
-				<Button color="primary" label="common.save" @click="save" />
-			</div>
+				<ListTile
+					title="orderBot.sendStartHour"
+					:disabled="!botSettings.settings"
+					@click="openStartHour"
+				>
+					<template #description>{{ startHour }}</template>
+					<template #trailing
+						><ChevronRight
+							class="size-5 text-muted-foreground"
+							aria-hidden="true"
+					/></template>
+				</ListTile>
+			</List>
 		</Island>
-
 		<TelegramChannelSettings />
-	</template>
+	</div>
 </template>

@@ -1,47 +1,67 @@
 <script setup lang="ts">
-type Step = {
-	label: string;
-};
+import { computed } from 'vue';
+import { Check } from '@lucide/vue';
+import { cn } from '~/utils/cn';
 
-defineProps<{
-	steps: Step[];
-	currentStep: number;
-}>();
+interface Step {
+	id: string | number;
+	label: string;
+}
+
+interface StepperProps {
+	steps?: Step[];
+	selected?: Step;
+	direction?: 'horizontal' | 'vertical';
+}
+
+const props = withDefaults(defineProps<StepperProps>(), {
+	steps: () => [],
+	direction: 'horizontal',
+});
+
+const selectedIndex = computed(() =>
+	props.steps.findIndex(step => step.id === props.selected?.id),
+);
 </script>
 
 <template>
-	<ol class="flex w-full items-start" aria-label="Прогресс формы">
-		<template v-for="(step, index) in steps" :key="step.label">
-			<li class="flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+	<div
+		role="list"
+		:class="cn('flex justify-around', direction === 'vertical' ? 'flex-col items-start' : 'items-center')"
+	>
+		<template v-for="(step, index) in steps" :key="step.id">
+			<div
+				role="listitem"
+				:aria-current="index === selectedIndex ? 'step' : undefined"
+				:class="cn('flex min-w-0 flex-1 items-center gap-2 rounded-lg py-2', direction === 'horizontal' && 'flex-col')"
+			>
 				<div
-					:class="[
-						'flex size-9 items-center justify-center rounded-full border-2 bg-background text-base transition-colors',
-						index + 1 <= currentStep
-							? 'border-foreground text-foreground'
-							: 'border-border text-muted-foreground',
-					]"
-					:aria-current="index + 1 === currentStep ? 'step' : undefined"
+					:class="cn(
+						'flex size-8 shrink-0 items-center justify-center rounded-full',
+						index === selectedIndex
+							? 'border-2 border-primary text-base font-normal text-primary'
+							: index < selectedIndex
+								? 'bg-primary/90 text-primary-foreground'
+								: 'border text-muted-foreground',
+					)"
 				>
-					{{ index + 1 }}
+					<Check v-if="index < selectedIndex" :size="18" aria-hidden="true" />
+					<span v-else>{{ index + 1 }}</span>
 				</div>
-
-				<span
-					:class="[
-						'max-w-28 text-xs font-semibold sm:text-base',
-						index + 1 === currentStep
-							? 'text-foreground'
-							: 'text-muted-foreground',
-					]"
+				<p
+					:class="cn('text-center text-sm wrap-anywhere', index === selectedIndex ? 'font-semibold text-primary' : 'font-medium text-muted-foreground')"
 				>
-					{{ step.label }}
-				</span>
-			</li>
-
-			<li
+					{{ $t(step.label) }}
+				</p>
+			</div>
+			<div
 				v-if="index < steps.length - 1"
 				aria-hidden="true"
-				class="mt-4 h-0.5 min-w-8 flex-1 bg-border sm:mt-6 sm:min-w-16"
+				:class="cn(
+					direction === 'horizontal' ? 'h-0.5 min-w-2 flex-1' : 'ml-4 h-6 w-0.5 shrink-0',
+					index < selectedIndex ? 'bg-primary' : 'bg-border',
+				)"
 			/>
 		</template>
-	</ol>
+	</div>
 </template>

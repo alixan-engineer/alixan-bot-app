@@ -18,7 +18,7 @@ defineOptions({
 });
 
 type InputType = 'text' | 'email' | 'password' | 'tel' | 'url' | 'number';
-type InputAutocomplete = 'on' | 'off';
+type InputAutocomplete = 'on' | 'off' | 'one-time-code';
 
 interface InputProps {
 	id?: string;

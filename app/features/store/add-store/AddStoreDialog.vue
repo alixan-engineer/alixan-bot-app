@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AlertDialog from '~/components/ui/alert-dialog/AlertDialog.vue';
 const props = defineProps<{ close: () => void }>();
 
 type ConnectionResult = {
@@ -18,6 +19,16 @@ type Setup = {
 	results?: ConnectionResult[];
 };
 
+const steps = [
+	{ id: 'phone', label: 'store.onboarding.phone' },
+	{ id: 'sms', label: 'store.onboarding.sms' },
+	{ id: 'merchants', label: 'store.onboarding.merchants' },
+];
+const selectedStep = computed(() => {
+	if (!setup.value) return steps[0];
+	return setup.value.state === 'sms' ? steps[1] : steps[2];
+});
+
 const phone = ref('');
 const code = ref('');
 const merchantIds = ref<string[]>([]);
@@ -25,10 +36,37 @@ const setup = ref<Setup>();
 const busy = ref(false);
 const error = ref('');
 const stores = useStores();
+const dialog = useDialog();
+let lastAlertError = '';
+const showError = (message: string, inDialog: boolean) => {
+	if (!mounted || !message) return;
+	if (!inDialog) {
+		error.value = message;
+		return;
+	}
+	if (message === lastAlertError) return;
+	lastAlertError = message;
+	dialog.open(AlertDialog, {
+		width: '360px',
+		height: '320px',
+		data: {
+			title: 'common.error',
+			description: message,
+			buttonLabel: 'common.ok',
+			buttonColor: 'primary',
+			mediaComponent: 'Lottie',
+			mediaProps: { name: 'error', loop: false, width: '80px', height: '80px' },
+		},
+	});
+};
 let timer: ReturnType<typeof setTimeout> | undefined;
 let mounted = true;
 
 const request = async (action: string, body: Record<string, unknown> = {}) => {
+	if (busy.value || !mounted) return;
+	clearTimeout(timer);
+	const useAlert = !setup.value || setup.value.state === 'sms';
+	if (action !== 'status') lastAlertError = '';
 	error.value = '';
 	busy.value = true;
 	try {
@@ -48,10 +86,14 @@ const request = async (action: string, body: Record<string, unknown> = {}) => {
 				void request('status');
 			}, 2000);
 		if (setup.value.state === 'done') await stores.getStores();
-		error.value = setup.value.error ?? '';
-	} catch {
-		error.value =
-			'Запрос не выполнен. Проверьте сообщение об ошибке и повторите.';
+		if (setup.value.error) showError(setup.value.error, useAlert);
+	} catch (cause) {
+		const apiError = cause as { data?: { message?: string | string[] } };
+		const message = apiError?.data?.message;
+		showError(
+			(Array.isArray(message) ? message.join(', ') : message) || 'common.requestFailed',
+			useAlert,
+		);
 		// Recover an ambiguous response by reading state, never by resending SMS or creating a user again.
 		if (mounted && setup.value && Date.now() < setup.value.expiresAt) {
 			timer = setTimeout(() => {
@@ -63,7 +105,36 @@ const request = async (action: string, body: Record<string, unknown> = {}) => {
 	}
 };
 
+const backToPhone = async () => {
+	if (busy.value || setup.value?.state !== 'sms') return;
+	clearTimeout(timer);
+	busy.value = true;
+	lastAlertError = '';
+	try {
+		await useApiFetch('stores/onboarding/cancel', {
+			method: 'POST',
+			body: { id: setup.value.id },
+		});
+		if (!mounted) return;
+		setup.value = undefined;
+		code.value = '';
+		merchantIds.value = [];
+		error.value = '';
+	} catch (cause) {
+		const message = (cause as { data?: { message?: string | string[] } })?.data?.message;
+		showError(
+			(Array.isArray(message) ? message.join(', ') : message) || 'common.requestFailed',
+			true,
+		);
+	} finally {
+		busy.value = false;
+	}
+};
+
 const next = () => {
+	if (busy.value) return;
+	if (!setup.value && !/^\d{10}$/.test(phone.value)) return;
+	if (setup.value?.state === 'sms' && !/^\d{6}$/.test(code.value)) return;
 	if (!setup.value) return request('start', { phone: `+7${phone.value}` });
 	if (setup.value.state === 'sms')
 		return request('sms', { code: code.value }).finally(() => {
@@ -87,23 +158,19 @@ onBeforeUnmount(() => {
 
 <template>
 	<div class="size-full flex flex-col">
-		<div class="flex-1 p-6 space-y-6 overflow-y-auto">
-			<InfoBox>
-				Введите номер владельца магазина и подтвердите вход кодом из SMS.
-				Название и города складов загрузятся из Kaspi.
+		<Stepper :steps="steps" :selected="selectedStep" class="shrink-0 px-4" />
+		<div class="min-h-0 flex-1 p-6 space-y-6 overflow-y-auto">
+			<InfoBox v-if="!setup">
+				Введите номер владельца магазина
 			</InfoBox>
-			<PhoneInput v-if="!setup" v-model="phone" :disabled="busy" required />
-			<label v-if="setup?.state === 'sms'" class="block">
-				Код из SMS Kaspi
-				<input
-					v-model="code"
-					inputmode="numeric"
-					autocomplete="one-time-code"
-					maxlength="6"
-					class="mt-2 w-full rounded-lg border p-3"
-					@keyup.enter="next"
-				/>
-			</label>
+			<PhoneInput v-if="!setup" v-model="phone" :disabled="busy" autofocus />
+			<template v-if="setup?.state === 'sms'">
+				<InfoBox>Введите код из SMS</InfoBox>
+				<fieldset :disabled="busy" class="min-w-0">
+					<legend class="sr-only">Введите код из SMS</legend>
+					<OtpInput v-model="code" autofocus :length="6" class="mx-auto w-full" @keyup.enter="next" />
+				</fieldset>
+			</template>
 			<template v-if="setup?.state === 'merchants'">
 				<fieldset class="space-y-3">
 					<legend class="mb-3">
@@ -179,9 +246,18 @@ onBeforeUnmount(() => {
 					</p>
 				</li>
 			</ul>
-			<p v-if="error" role="alert" class="text-destructive">{{ error }}</p>
+			<p v-if="error && setup && setup.state !== 'sms'" role="alert" class="text-destructive">{{ $t(error) }}</p>
 		</div>
-		<div class="flex gap-3 border-t p-4">
+		<div class="flex shrink-0 gap-3 border-t p-4">
+			<Button
+				v-if="setup?.state === 'sms'"
+				class="flex-1"
+				variant="filled"
+				color="secondary"
+				label="common.back"
+				:disabled="busy"
+				@click="backToPhone"
+			/>
 			<Button
 				v-if="setup?.state === 'done' || setup?.state === 'error'"
 				class="flex-1"
@@ -198,6 +274,7 @@ onBeforeUnmount(() => {
 					busy ||
 					(!setup && !/^\d{10}$/.test(phone)) ||
 					setup?.state === 'connecting' ||
+					(setup?.state === 'sms' && !/^\d{6}$/.test(code)) ||
 					(setup?.state === 'merchants' && !merchantIds.length)
 				"
 				@click="next"
@@ -207,6 +284,8 @@ onBeforeUnmount(() => {
 						? 'Подождите…'
 						: !setup
 						? 'Получить SMS'
+						: setup.state === 'connecting'
+						? 'Подключаем…'
 						: setup.state === 'merchants'
 						? `Подключить (${merchantIds.length})`
 						: 'Подтвердить'

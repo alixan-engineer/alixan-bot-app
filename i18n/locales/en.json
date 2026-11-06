@@ -170,6 +170,9 @@
 		"password": "Password"
 	},
 	"common": {
+		"error": "Error",
+		"requestFailed": "The request failed. Please try again.",
+		"done": "Done",
 		"back": "Back",
 		"cancel": "Cancel",
 		"close": "Close",
@@ -273,6 +276,14 @@
 		}
 	},
 	"settings": {
+		"retry": "Try again",
+		"orderPreferences": "Order processing",
+		"saveError": "Could not save. Please try again.",
+		"loadError": "Could not load settings.",
+		"loading": "Loading…",
+		"pointEnabled": "Active",
+		"pointDisabled": "Inactive",
+
 		"tabs": {
 			"priceBot": "Price Bot",
 			"orderBot": "Order Bot"
@@ -283,6 +294,8 @@
 		"priceStepError": "The price step must be greater than 0.",
 		"autoRaiseEnabled": "Automatic price increase",
 		"autoRaiseHint": "If your price is far below the nearest competitor or no competitors are found, the bot raises it within the maximum.",
+		"smartNearMinEnabled": "Competitor dropped the price",
+		"smartNearMinHint": "If the first competitor drops the price near the minimum, the bot follows the second competitor.",
 		"ignoredCompetitors": "Ignored competitors",
 		"ignoredCompetitorsHint": "Price Bot excludes these sellers when repricing all stores.",
 		"ignoredCompetitorsEmpty": "No ignored competitors.",
@@ -368,6 +381,12 @@
 		"invalidNumber": "Enter a valid number"
 	},
 	"store": {
+		"onboarding": {
+			"phone": "Phone number",
+			"sms": "SMS code",
+			"merchants": "Select store"
+		},
+
 		"addStore": "Store",
 		"newStore": "New store",
 		"editStore": "Edit store",

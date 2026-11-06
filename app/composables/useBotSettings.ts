@@ -6,6 +6,7 @@ export type BotSettings = {
 	priceStep: number;
 	stockQuantity: number;
 	autoRaiseEnabled: boolean;
+	smartNearMinEnabled: boolean;
 	telegramEnabled: boolean;
 	pickupPointChannels: PickupPointChannel[];
 	orderSendStartHour: number;
@@ -46,6 +47,7 @@ export const useBotSettings = defineStore('bot-settings', () => {
 			| 'priceStep'
 			| 'stockQuantity'
 			| 'autoRaiseEnabled'
+			| 'smartNearMinEnabled'
 			| 'telegramEnabled'
 			| 'orderSendStartHour'
 			| 'autoDispatchExpressOrders'

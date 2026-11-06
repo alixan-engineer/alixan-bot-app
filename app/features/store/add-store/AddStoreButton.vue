@@ -7,7 +7,7 @@ const dialog = useDialog();
 const openDialog = () => {
 	dialog.open(AddStoreDialog, {
 		width: '480px',
-		height: '480px',
+		height: '540px',
 		title: 'store.newStore',
 	});
 };

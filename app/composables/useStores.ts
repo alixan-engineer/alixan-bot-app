@@ -72,12 +72,24 @@ export const useStores = defineStore('stores', () => {
 	};
 
 	const updatePriceBotStatus = async (id: string, enabled: boolean) => {
-		const store = await useApiFetch<Store>(`stores/${id}/price-bot`, {
-			method: 'PATCH',
-			body: { enabled },
-		});
-		stores.value = stores.value.map(item => item._id === store._id ? store : item);
-		return store;
+		try {
+			const store = await useApiFetch<Store>(`stores/${id}/price-bot`, {
+				method: 'PATCH',
+				body: { enabled },
+			});
+			stores.value = stores.value.map(item => item._id === store._id ? store : item);
+			return store;
+		} catch (error) {
+			// A failed response does not guarantee that the update was not saved.
+			// Read the current state without repeating the write or hiding the error.
+			try {
+				const store = await useApiFetch<Store>(`stores/${id}`);
+				stores.value = stores.value.map(item => item._id === store._id ? store : item);
+			} catch {
+				// Keep the last known state if the read also fails.
+			}
+			throw error;
+		}
 	};
 
 	const setMainStore = async (id: string) => {

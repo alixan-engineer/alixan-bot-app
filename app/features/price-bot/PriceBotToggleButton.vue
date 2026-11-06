@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Pause, Play } from '@lucide/vue';
 import ConfirmDialog from '~/components/ui/confirm-dialog/ConfirmDialog.vue';
 
 const props = defineProps<{ mode: 'start' | 'stop' }>();
@@ -44,15 +43,11 @@ const confirmToggle = () => {
 </script>
 
 <template>
-	<Button
-		variant="filled"
-		:color="mode === 'start' ? 'destructive' : 'secondary'"
-		:label="mode === 'start' ? 'priceBot.stop' : 'priceBot.start'"
-		@click="confirmToggle"
-	>
-		<template #leading>
-			<Pause v-if="mode === 'start'" class="size-4" />
-			<Play v-else class="size-4" />
-		</template>
-	</Button>
+	<Switch
+		:model-value="mode === 'start'"
+		:disabled="priceBot.loading || !priceBot.state"
+		:aria-label="$t('settings.tabs.priceBot')"
+		class="relative after:absolute after:-inset-2.5"
+		@update:model-value="confirmToggle"
+	/>
 </template>

@@ -1,90 +1,69 @@
 <script setup lang="ts">
+import { ChevronRight } from '@lucide/vue';
+import SettingValueDialog from '~/features/settings/SettingValueDialog.vue';
+
 usePageMeta({
 	title: 'seo.pages.priceBot.title',
 	description: 'seo.pages.priceBot.description',
 });
-
 const botSettings = useBotSettings();
 const priceBot = usePriceBot();
-const toast = useToast();
-const loader = useGlobalLoader();
-const priceStep = ref<number | null>(null);
-const autoRaiseEnabled = ref(true);
-
-const priceBotMode = computed(() => priceBot.state?.mode ?? 'stop');
-
-const syncForm = () => {
-	const settings = botSettings.settings;
-	priceStep.value = settings?.priceStep ?? 3;
-	autoRaiseEnabled.value = settings?.autoRaiseEnabled ?? true;
-};
-
-const save = async () => {
-	const nextPriceStep = Number(priceStep.value);
-	if (!Number.isFinite(nextPriceStep) || nextPriceStep <= 0) {
-		toast.open('settings.priceStepError', 'error');
-		return;
-	}
-
-	try {
-		loader.show();
-		await botSettings.updateSettings({
-			priceStep: nextPriceStep,
-			autoRaiseEnabled: autoRaiseEnabled.value,
-		});
-		toast.open('settings.saved', 'success');
-	} finally {
-		loader.hide();
-	}
-};
-
+const dialog = useDialog();
+const openPriceStep = () =>
+	dialog.open(SettingValueDialog, {
+		width: '440px',
+		height: 'auto',
+		title: 'settings.priceStep',
+		data: { field: 'priceStep', value: botSettings.settings?.priceStep ?? 3 },
+	});
 onMounted(async () => {
 	await Promise.all([botSettings.getSettings(), priceBot.getState()]);
-	syncForm();
 });
 </script>
 
 <template>
 	<Spinner v-if="botSettings.loading && !botSettings.settings" />
-
-	<template v-else>
-		<BotControl
-			title="priceBot.controlTitle"
-			description="priceBot.controlDescription"
-		>
-			<PriceBotToggleButton :mode="priceBotMode" />
-		</BotControl>
-
-		<Island content-class="flex flex-col gap-4 p-3.5 sm:gap-6 sm:p-6">
-			<div>
-				<p class="text-xl font-semibold">
-					{{ $t('settings.dumpingSettings') }}
-				</p>
-				<p class="mt-1 text-base text-muted-foreground">
-					{{ $t('settings.priceStepHint') }}
-				</p>
-			</div>
-
-			<div>
-				<Checkbox
-					v-model="autoRaiseEnabled"
-					:label="$t('settings.autoRaiseEnabled')"
-				/>
-				<p class="mt-1 pl-8 text-sm text-muted-foreground">
-					{{ $t('settings.autoRaiseHint') }}
-				</p>
-			</div>
-
-			<div class="flex gap-4">
-				<Input
-					v-model.number="priceStep"
-					label="settings.priceStep"
-					type="number"
-				/>
-				<Button color="primary" label="common.save" @click="save" />
-			</div>
+	<div v-else class="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-6">
+		<Island content-class="p-0">
+			<List>
+				<ListTile
+					title="settings.tabs.priceBot"
+					description="priceBot.controlDescription"
+				>
+					<template #trailing
+						><PriceBotToggleButton :mode="priceBot.state?.mode ?? 'stop'"
+					/></template>
+				</ListTile>
+			</List>
 		</Island>
-
-		<IgnoredCompetitorsSettings />
-	</template>
+		<Island title="settings.dumpingSettings" content-class="p-0">
+			<List>
+				<ListTile
+					title="settings.priceStep"
+					:disabled="!botSettings.settings"
+					@click="openPriceStep"
+				>
+					<template #description
+						>{{ botSettings.settings?.priceStep ?? 3 }} ₸</template
+					>
+					<template #trailing
+						><ChevronRight
+							class="size-5 text-muted-foreground"
+							aria-hidden="true"
+					/></template>
+				</ListTile>
+				<SettingSwitchRow
+					field="autoRaiseEnabled"
+					title="settings.autoRaiseEnabled"
+					description="settings.autoRaiseHint"
+				/>
+				<SettingSwitchRow
+					field="smartNearMinEnabled"
+					title="settings.smartNearMinEnabled"
+					description="settings.smartNearMinHint"
+				/>
+				<IgnoredCompetitorsSettings />
+			</List>
+		</Island>
+	</div>
 </template>

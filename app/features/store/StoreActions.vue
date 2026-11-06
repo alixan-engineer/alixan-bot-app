@@ -10,6 +10,7 @@ const dialog = useDialog();
 const toast = useToast();
 const loader = useGlobalLoader();
 const menuOpen = ref(false);
+const priceBotEnabled = computed(() => props.store.priceBotEnabled !== false);
 
 const closeMenu = () => (menuOpen.value = false);
 
@@ -73,7 +74,7 @@ const confirmEnable = () =>
 	});
 
 const confirmTogglePriceBot = () => {
-	const willEnable = props.store.priceBotEnabled === false;
+	const willEnable = !priceBotEnabled.value;
 	confirm({
 		title: willEnable
 			? 'store.startPriceBotConfirm.title'
@@ -148,9 +149,9 @@ const confirmRemove = () =>
 					v-if="store.status === 'enable'"
 					class="w-full justify-start"
 					variant="ghost"
-					:color="store.priceBotEnabled ? 'destructive' : 'secondary'"
+					:color="priceBotEnabled ? 'destructive' : 'secondary'"
 					:label="
-						store.priceBotEnabled ? 'store.stopPriceBot' : 'store.startPriceBot'
+						priceBotEnabled ? 'store.stopPriceBot' : 'store.startPriceBot'
 					"
 					@click="confirmTogglePriceBot"
 				>

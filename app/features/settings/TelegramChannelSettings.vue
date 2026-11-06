@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ChevronDown, Store } from '@lucide/vue';
+import { ChevronRight, Store } from '@lucide/vue';
 import type { PickupPointChannel } from '~/composables/useBotSettings';
 import TelegramStoreDrawer from './TelegramStoreDrawer.vue';
 
 const botSettings = useBotSettings();
-const drawer = useDrawer();
+const dialog = useDialog();
 const loading = ref(true);
+const failed = ref(false);
 const points = ref<PickupPointChannel[]>([]);
 
 const stores = computed(() => {
@@ -27,8 +28,11 @@ const stores = computed(() => {
 
 const load = async () => {
 	loading.value = true;
+	failed.value = false;
 	try {
 		points.value = await botSettings.getPickupPoints();
+	} catch {
+		failed.value = true;
 	} finally {
 		loading.value = false;
 	}
@@ -36,16 +40,14 @@ const load = async () => {
 
 const configuredCount = (store: (typeof stores.value)[number]) =>
 	store.points.filter(
-		point =>
-			point.expressTelegramChatId.trim() &&
-			point.regularTelegramChatId.trim(),
+		(point) =>
+			point.expressTelegramChatId.trim() && point.regularTelegramChatId.trim(),
 	).length;
 
 const openStore = (store: (typeof stores.value)[number]) => {
-	drawer.open(TelegramStoreDrawer, {
+	dialog.open(TelegramStoreDrawer, {
 		width: '600px',
-		height: '760px',
-		position: 'bottom',
+		height: 'auto',
 		title: store.name,
 		data: {
 			store,
@@ -67,41 +69,58 @@ onMounted(load);
 </script>
 
 <template>
-	<Island content-class="flex flex-col gap-4 p-3.5 sm:gap-6 sm:p-6">
-		<div>
-			<p class="text-xl font-semibold">{{ $t('telegram.title') }}</p>
-			<p class="mt-1 text-base text-muted-foreground">
-				{{ $t('telegram.description') }}
+	<Island title="telegram.storeChannels" content-class="p-0">
+		<div v-if="loading" class="p-4"><Spinner /></div>
+		<div v-else-if="failed" class="space-y-3 p-4">
+			<p role="alert" class="text-sm text-destructive">
+				{{ $t('settings.loadError') }}
 			</p>
+			<Button label="settings.retry" @click="load" />
 		</div>
-
-		<Spinner v-if="loading" />
-		<p v-else-if="!points.length" class="text-sm text-muted-foreground">
+		<p v-else-if="!points.length" class="p-4 text-sm text-muted-foreground">
 			{{ $t('telegram.noPickupPoints') }}
 		</p>
-
-		<div v-else class="space-y-6">
-			<Island
+		<List v-else>
+			<ListTile
 				v-for="store in stores"
 				:key="store.id"
-				content-class="flex flex-row items-center p-4 gap-5 cursor-pointer hover:bg-secondary"
-				variant="outlined"
 				@click="openStore(store)"
 			>
-				<Store />
-				<p class="flex-1">
-					<span class="block truncate">{{ store.name }}</span>
-					<span class="block text-sm font-normal text-muted-foreground">
+				<template #leading
+					><Store class="size-5 text-muted-foreground" aria-hidden="true"
+				/></template>
+				<template #title
+					><span class="block wrap-anywhere">{{ store.name }}</span></template
+				>
+				<template #description>
+					<p>
 						{{
 							$t('telegram.chatsConfigured', {
 								configured: configuredCount(store),
 								total: store.points.length,
 							})
 						}}
-					</span>
-				</p>
-				<ChevronDown />
-			</Island>
-		</div>
+					</p>
+					<p
+						v-for="point in store.points.filter(
+							(point) =>
+								point.expressTelegramChatId || point.regularTelegramChatId,
+						)"
+						:key="point.pointId"
+						class="mt-1 wrap-anywhere"
+					>
+						{{ point.pointId }} · {{ $t('telegram.pointExpressChatId') }}:
+						{{ point.expressTelegramChatId || '—' }} ·
+						{{ $t('telegram.pointRegularChatId') }}:
+						{{ point.regularTelegramChatId || '—' }}
+					</p>
+				</template>
+				<template #trailing
+					><ChevronRight
+						class="size-5 text-muted-foreground"
+						aria-hidden="true"
+				/></template>
+			</ListTile>
+		</List>
 	</Island>
 </template>

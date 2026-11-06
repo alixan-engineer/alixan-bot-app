@@ -37,10 +37,10 @@ const sections = computed(() => [
 		label: 'nav.ordersSection',
 		pages: [
 			{ id: '/archive', title: 'nav.kaspiOrders', icon: Archive },
+			{ id: '/orders', title: 'nav.telegramOrders', icon: Send },
 			...(userStore.user?.orderBotEnabled
 				? [{ id: '/order-bot-settings', title: 'nav.settings', icon: Settings }]
 				: []),
-			{ id: '/orders', title: 'nav.telegramOrders', icon: Send },
 		],
 	},
 	{

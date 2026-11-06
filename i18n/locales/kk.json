@@ -170,6 +170,9 @@
 		"password": "Құпиясөз"
 	},
 	"common": {
+		"error": "Қате",
+		"requestFailed": "Сұрау орындалмады. Қайта көріңіз.",
+		"done": "Дайын",
 		"back": "Артқа",
 		"cancel": "Болдырмау",
 		"close": "Жабу",
@@ -273,6 +276,14 @@
 		}
 	},
 	"settings": {
+		"retry": "Қайталау",
+		"orderPreferences": "Тапсырыстарды өңдеу",
+		"saveError": "Сақтау мүмкін болмады. Қайта көріңіз.",
+		"loadError": "Параметрлерді жүктеу мүмкін болмады.",
+		"loading": "Жүктелуде…",
+		"pointEnabled": "Белсенді",
+		"pointDisabled": "Белсенді емес",
+
 		"tabs": {
 			"priceBot": "Price Bot",
 			"orderBot": "Order Bot"
@@ -283,6 +294,8 @@
 		"priceStepError": "Баға қадамы 0-ден үлкен болуы керек.",
 		"autoRaiseEnabled": "Бағаны автоматты көтеру",
 		"autoRaiseHint": "Бағаңыз жақын бәсекелестен едәуір төмен болса немесе бәсекелестер табылмаса, бот оны max шегінде көтереді.",
+		"smartNearMinEnabled": "Бәсекелес бағаны түсірді",
+		"smartNearMinHint": "Бірінші бәсекелес бағаны min маңында қатты түсірсе, бот екінші бәсекелеске бағдарланады.",
 		"ignoredCompetitors": "Еленбейтін бәсекелестер",
 		"ignoredCompetitorsHint": "Price Bot барлық дүкендерде көрсетілген сатушылардың бағасын есепке алмайды.",
 		"ignoredCompetitorsEmpty": "Еленбейтін бәсекелестер жоқ.",
@@ -368,6 +381,12 @@
 		"invalidNumber": "Дұрыс сан енгізіңіз"
 	},
 	"store": {
+		"onboarding": {
+			"phone": "Телефон нөмірі",
+			"sms": "SMS коды",
+			"merchants": "Дүкенді таңдау"
+		},
+
 		"addStore": "Дүкен",
 		"newStore": "Жаңа дүкен",
 		"editStore": "Дүкенді өзгерту",
