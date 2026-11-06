@@ -30,9 +30,9 @@ const add = async () => {
 <template>
 	<div class="flex max-h-[70dvh] flex-col">
 		<div class="min-h-0 space-y-5 overflow-y-auto p-4 sm:p-6">
-			<p class="text-sm leading-6 text-muted-foreground">
+			<InfoBox>
 				{{ $t('settings.ignoredCompetitorsHint') }}
-			</p>
+			</InfoBox>
 			<form class="flex flex-col gap-3" @submit.prevent="add">
 				<Input
 					v-model="competitorId"

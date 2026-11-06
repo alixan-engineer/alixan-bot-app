@@ -43,6 +43,7 @@ onMounted(load);
 		:label="$t('calendarLabels.period')"
 		class="max-w-xl"
 	/>
+	<p v-if="analytics.popularProductsPartial && !analytics.loading" role="status" class="text-sm text-amber-700 dark:text-amber-300">{{ $t('common.partialStoreData') }}</p>
 	<Spinner v-if="analytics.loading" />
 	<PopularProductsVirtualScroller
 		v-else-if="analytics.popularProducts.length"

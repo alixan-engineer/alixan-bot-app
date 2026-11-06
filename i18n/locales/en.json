@@ -170,6 +170,7 @@
 		"password": "Password"
 	},
 	"common": {
+		"partialStoreData": "Some stores are unavailable. Showing data from available stores. Try refreshing later.",
 		"error": "Error",
 		"requestFailed": "The request failed. Please try again.",
 		"done": "Done",
@@ -276,6 +277,7 @@
 		}
 	},
 	"settings": {
+		"removeIgnoredCompetitorConfirm": "Remove competitor from the ignore list?",
 		"retry": "Try again",
 		"orderPreferences": "Order processing",
 		"saveError": "Could not save. Please try again.",
@@ -297,7 +299,7 @@
 		"smartNearMinEnabled": "Competitor dropped the price",
 		"smartNearMinHint": "With a gap of at least ₸5,000, the bot tries raising the price for 30 minutes. If the competitor stays low, it resumes undercutting until only ₸1,000 above min remains, then follows the second competitor. Requires automatic price increases.",
 		"ignoredCompetitors": "Ignored competitors",
-		"ignoredCompetitorsHint": "Price Bot excludes these sellers when repricing all stores.",
+		"ignoredCompetitorsHint": "The bot will not undercut the specified stores",
 		"ignoredCompetitorsEmpty": "No ignored competitors.",
 		"competitorRequired": "Enter the competitor storeId.",
 		"saved": "Settings saved."

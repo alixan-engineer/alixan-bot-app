@@ -101,6 +101,7 @@ export const useProducts = defineStore('products', () => {
 	const ignoredCompetitors = ref<IgnoredCompetitor[]>([]);
 	const loading = ref(false);
 	const catalogUpdatedAt = ref<string | null>(null);
+	const catalogPartial = ref(false);
 	let catalogRequestId = 0;
 
 	const getProducts = async (refresh = false) => {
@@ -114,7 +115,8 @@ export const useProducts = defineStore('products', () => {
 				cityId.value = cities.value[0]?.id ?? '';
 			const response = await useApiFetch<{
 				products: Product[];
-				updatedAt: string;
+				updatedAt: string | null;
+				partial?: boolean;
 			}>(
 				`products/catalog${
 					refresh ? '/refresh' : ''
@@ -124,6 +126,7 @@ export const useProducts = defineStore('products', () => {
 			if (requestId !== catalogRequestId) return;
 			products.value = response.products;
 			catalogUpdatedAt.value = response.updatedAt;
+			catalogPartial.value = response.partial === true;
 		} finally {
 			if (requestId === catalogRequestId) loading.value = false;
 		}
@@ -253,6 +256,7 @@ export const useProducts = defineStore('products', () => {
 		cities,
 		cityId,
 		catalogUpdatedAt,
+		catalogPartial,
 		products,
 		currentProduct,
 		logs,

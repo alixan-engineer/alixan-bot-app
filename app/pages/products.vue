@@ -439,6 +439,7 @@ onBeforeUnmount(() => {
 			</div>
 		</Drawer>
 
+		<p v-if="products.catalogPartial" role="status" class="text-sm text-amber-700 dark:text-amber-300">{{ $t('common.partialStoreData') }}</p>
 		<Spinner v-if="products.loading && !products.products.length" />
 
 		<ProductVirtualScroller

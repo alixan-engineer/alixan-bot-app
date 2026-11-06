@@ -17,6 +17,7 @@ export const useAnalytics = defineStore('analytics', () => {
 	const hourPoints = ref<HourPoint[]>([]);
 	const total = ref(0);
 	const popularProducts = ref<PopularProduct[]>([]);
+	const popularProductsPartial = ref(false);
 	const loading = ref(false);
 
 	const loadGraph = async (from: string, to: string) => {
@@ -42,10 +43,11 @@ export const useAnalytics = defineStore('analytics', () => {
 		loading.value = true;
 		try {
 			const query = new URLSearchParams({ from, to });
-			const response = await useApiFetch<{ products: PopularProduct[] }>(
+			const response = await useApiFetch<{ products: PopularProduct[]; partial?: boolean }>(
 				`orders/analytics/popular-products?${query}`,
 			);
 			popularProducts.value = response.products;
+			popularProductsPartial.value = response.partial === true;
 		} finally {
 			loading.value = false;
 		}
@@ -57,6 +59,7 @@ export const useAnalytics = defineStore('analytics', () => {
 		hourPoints,
 		total,
 		popularProducts,
+		popularProductsPartial,
 		loading,
 		loadGraph,
 		loadPopularProducts,
