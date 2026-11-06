@@ -295,7 +295,7 @@
 		"autoRaiseEnabled": "Automatic price increase",
 		"autoRaiseHint": "If your price is far below the nearest competitor or no competitors are found, the bot raises it within the maximum.",
 		"smartNearMinEnabled": "Competitor dropped the price",
-		"smartNearMinHint": "If the first competitor drops the price near the minimum, the bot follows the second competitor.",
+		"smartNearMinHint": "With a gap of at least ₸5,000, the bot tries raising the price for 30 minutes. If the competitor stays low, it resumes undercutting until only ₸1,000 above min remains, then follows the second competitor. Requires automatic price increases.",
 		"ignoredCompetitors": "Ignored competitors",
 		"ignoredCompetitorsHint": "Price Bot excludes these sellers when repricing all stores.",
 		"ignoredCompetitorsEmpty": "No ignored competitors.",
