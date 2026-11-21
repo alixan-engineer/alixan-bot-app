@@ -3,7 +3,6 @@ import {
 	ArrowUp,
 	Check,
 	ChevronDown,
-	RefreshCw,
 	SlidersHorizontal,
 	Search as SearchIcon,
 } from '@lucide/vue';
@@ -130,7 +129,6 @@ const openSearch = () =>
 	});
 useAppBarActions([
 	{ icon: SearchIcon, label: 'catalogUi.searchTitle', onClick: openSearch },
-	{ icon: RefreshCw, label: 'catalogUi.refresh', onClick: () => confirmRefreshCatalog() },
 	{
 		icon: SlidersHorizontal,
 		label: 'catalogUi.filters',
