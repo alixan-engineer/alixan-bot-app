@@ -394,9 +394,6 @@ onBeforeUnmount(() => {
 				</div>
 			</DropdownMenu>
 		</div>
-		<p v-else-if="storeOptions.length === 1" class="text-sm font-medium">
-			{{ $t('catalogUi.stores') }}: {{ selectedStoreName }}
-		</p>
 		<p v-if="selectedStoreIds.some(id => !storeOptions.some(option => option.value === id))" role="status" class="text-sm text-muted-foreground">
 			{{ $t('catalogUi.unavailableStore') }}
 			<button class="underline" @click="selectStores([])">{{ $t('catalogUi.allStores') }}</button>
