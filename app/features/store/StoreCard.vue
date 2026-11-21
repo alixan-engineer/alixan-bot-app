@@ -6,7 +6,7 @@ defineProps<{ store: Store }>();
 
 <template>
 	<article
-		class="flex min-h-16 items-center gap-2.5 rounded-xl border p-3 sm:min-h-18 sm:gap-3 sm:p-4"
+		class="flex flex-wrap min-h-16 items-center gap-2.5 rounded-xl border p-3 sm:min-h-18 sm:gap-3 sm:p-4"
 	>
 		<StoreIndicator :status="store.status" />
 		<div class="min-w-0 flex-1">
@@ -23,6 +23,15 @@ defineProps<{ store: Store }>();
 			status="success"
 			:text="$t('store.mainStore')"
 		/>
+		<Button
+			v-if="store.storeId"
+			variant="outlined"
+			size="sm"
+			class="max-sm:order-last max-sm:w-full"
+			:to="{ path: '/products', query: { storeId: store._id } }"
+		>
+			{{ $t('catalogUi.storeProducts') }}
+		</Button>
 		<StoreActions :store="store" />
 	</article>
 </template>

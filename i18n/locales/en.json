@@ -745,6 +745,15 @@
 		"telegramSearchHint": "Search saved Telegram orders from all dates, independently of the page period and status."
 	},
 	"catalogUi": {
+		"refreshDescription": "Products will be loaded from Kaspi. This may take some time.",
+		"refreshConfirm": "Refresh products?",
+		"stores": "Stores",
+		"store": "Store",
+		"allStores": "All stores",
+		"storeProducts": "Products",
+		"unavailableStore": "Store unavailable.",
+		"emptyStore": "The selected stores have no products for the selected city and status.",
+		"disableScope": "Stores: {store}. Products to disable: {count}. Repricing status is shared across all stores in the selected city.",
 		"refresh": "Refresh",
 		"refreshed": "Catalog refreshed",
 		"updated": "Updated: {date}",

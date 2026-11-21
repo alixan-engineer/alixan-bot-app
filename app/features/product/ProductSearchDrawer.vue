@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import ProductVirtualScroller from './ProductVirtualScroller.vue';
 
-defineProps<{ close: () => void }>();
+const props = defineProps<{ close: () => void; data?: { storeIds?: string[] } }>();
 const products = useProducts();
 const search = ref('');
+const scopedProducts = computed(() => filterProductsByStore(products.products, props.data?.storeIds ?? []));
 const results = computed(() => {
 	const query = search.value.trim().toLocaleLowerCase();
-	if (!query) return products.products;
-	return products.products.filter((product) =>
+	if (!query) return scopedProducts.value;
+	return scopedProducts.value.filter((product) =>
 		[
 			product.masterTitle,
 			product.masterSku,

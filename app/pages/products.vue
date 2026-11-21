@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import {
 	ArrowUp,
+	Check,
+	ChevronDown,
 	RefreshCw,
 	SlidersHorizontal,
 	Search as SearchIcon,
@@ -16,37 +18,70 @@ usePageMeta({
 
 const products = useProducts();
 const favorites = useFavoriteProducts();
+const stores = useStores();
+const route = useRoute();
+const router = useRouter();
+const rememberedStoreIds = useState<string[]>('catalog-store-ids', () => []);
+const selectedStoreIds = computed(() => {
+	const query = route.query.storeId;
+	return [...new Set((Array.isArray(query) ? query : [query])
+		.filter((id): id is string => typeof id === 'string' && Boolean(id)))];
+});
+const storeMenuOpen = ref(false);
+const storeOptions = computed(() => stores.stores.filter(store => store.storeId).map(store => ({
+	label: store.name || store.email,
+	value: store._id,
+})));
+const selectedStoreName = computed(() => selectedStoreIds.value.length
+	? selectedStoreIds.value.map(id => storeOptions.value.find(store => store.value === id)?.label
+		?? t('catalogUi.unavailableStore')).join(', ')
+	: t('catalogUi.allStores'));
+const selectStores = async (ids: string[]) => {
+	rememberedStoreIds.value = ids;
+	await router.replace({ query: { ...route.query, storeId: ids.length ? ids : '' } });
+};
+const toggleStore = (id: string) => selectStores(selectedStoreIds.value.includes(id)
+	? selectedStoreIds.value.filter(value => value !== id)
+	: [...selectedStoreIds.value, id]);
+watch(selectedStoreIds, value => { rememberedStoreIds.value = value; });
+const storeProducts = computed(() => filterProductsByStore(products.products, selectedStoreIds.value));
 const dialog = useDialog();
 const toast = useToast();
 const loader = useGlobalLoader();
 const disablingProducts = ref(false);
 const removedCount = computed(
 	() =>
-		products.products.filter(
+		storeProducts.value.filter(
 			(product) => product.status === 'enable' && !product.stores.length,
 		).length,
 );
 
 const belowMinCount = computed(
 	() =>
-		products.products.filter(
+		storeProducts.value.filter(
 			(product) => product.status === 'enable' && product.competitorBelowMin,
 		).length,
 );
-const atMinCount = computed(() => products.products.filter(isAtMinPrice).length);
+const atMinCount = computed(() => storeProducts.value.filter(isAtMinPrice).length);
 const confirmDisableProducts = (kind: 'removed' | 'belowMin' | 'atMin') => {
-	const atMinProducts = kind === 'atMin' ? products.products.filter(isAtMinPrice) : [];
-	const count = kind === 'removed' ? removedCount.value : kind === 'atMin' ? atMinProducts.length : belowMinCount.value;
+	const targetProducts = storeProducts.value.filter(product =>
+		kind === 'atMin' ? isAtMinPrice(product)
+			: kind === 'removed' ? product.status === 'enable' && !product.stores.length
+				: product.status === 'enable' && product.competitorBelowMin,
+	);
+	const count = targetProducts.length;
 	if (disablingProducts.value || products.loading || !count) return;
 	const translation =
 		kind === 'removed' ? 'product.clearRemoved' : 'product.disableBelowMin';
 	const selectedCity = products.cityId;
+	const scopedToStore = selectedStoreIds.value.length > 0;
 	filtersOpen.value = false;
 	dialog.open(ConfirmDialog, {
 		width: '460px',
-		height: '180px',
+		height: 'auto',
 		data: {
 			title: `${translation}.title`,
+			description: t('catalogUi.disableScope', { store: selectedStoreName.value, count }),
 			cancelLabel: 'common.cancel',
 			submitLabel: 'actions.disable',
 			submitColor: 'destructive',
@@ -55,20 +90,20 @@ const confirmDisableProducts = (kind: 'removed' | 'belowMin' | 'atMin') => {
 				disablingProducts.value = true;
 				loader.show();
 				try {
-					const disableAtMin = async () => {
+					const disableSelectedProducts = async () => {
 						let disabledCount = 0;
-						for (const product of atMinProducts) {
+						for (const product of targetProducts) {
 							await products.updateProduct(product.masterSku, { status: 'disable', cityId: selectedCity });
 							disabledCount++;
 						}
 						return { disabledCount };
 					};
 					const result =
-						kind === 'removed'
+						scopedToStore || kind === 'atMin'
+							? await disableSelectedProducts()
+							: kind === 'removed'
 							? await products.disableRemovedProducts(selectedCity)
-							: kind === 'atMin'
-								? await disableAtMin()
-								: await products.disableBelowMinProducts(selectedCity);
+							: await products.disableBelowMinProducts(selectedCity);
 					await products.getProducts();
 					toast.open(
 						t(`${translation}.success`, { count: result.disabledCount }),
@@ -84,16 +119,18 @@ const confirmDisableProducts = (kind: 'removed' | 'belowMin' | 'atMin') => {
 		},
 	});
 };
-const { t, locale } = useI18n();
+const { t } = useI18n();
 const drawer = useDrawer();
 const openSearch = () =>
 	drawer.open(ProductSearchDrawer, {
 		title: 'catalogUi.searchTitle',
 		position: 'right',
 		width: '800px',
+		data: { storeIds: [...selectedStoreIds.value] },
 	});
 useAppBarActions([
 	{ icon: SearchIcon, label: 'catalogUi.searchTitle', onClick: openSearch },
+	{ icon: RefreshCw, label: 'catalogUi.refresh', onClick: () => confirmRefreshCatalog() },
 	{
 		icon: SlidersHorizontal,
 		label: 'catalogUi.filters',
@@ -152,21 +189,31 @@ const loadProducts = async () => {
 };
 const refreshCatalog = async () => {
 	if (products.loading) return;
+	loader.show();
 	try {
 		await products.getProducts(true);
 		toast.open('catalogUi.refreshed', 'success');
 	} catch {
 		/* The API error is displayed by useApiFetch. */
+	} finally {
+		loader.hide();
 	}
 };
-const updatedLabel = computed(() =>
-	products.catalogUpdatedAt
-		? new Intl.DateTimeFormat(locale.value, {
-				dateStyle: 'short',
-				timeStyle: 'short',
-		  }).format(new Date(products.catalogUpdatedAt))
-		: '',
-);
+const confirmRefreshCatalog = () => {
+	if (products.loading) return;
+	dialog.open(ConfirmDialog, {
+		width: '460px',
+		height: '240px',
+		data: {
+			title: 'catalogUi.refreshConfirm',
+			description: 'catalogUi.refreshDescription',
+			cancelLabel: 'common.cancel',
+			submitLabel: 'catalogUi.refresh',
+			submitColor: 'primary',
+			onSubmit: refreshCatalog,
+		},
+	});
+};
 
 const productViewStatus = (
 	product: (typeof products.products)[number],
@@ -184,13 +231,13 @@ const isAtMinPrice = (product: (typeof products.products)[number]) =>
 	product.stores.some((store) => store.currentPrice === product.minPrice);
 
 const filteredProducts = computed(() => {
-	const filtered = products.products.filter((product) => {
+	const filtered = storeProducts.value.filter((product) => {
 		const matchesStatus =
 			statusFilter.value === 'all' ||
 			(statusFilter.value === 'problem' &&
 				product.status === 'enable' &&
 				product.stores.length === 0) ||
-			(statusFilter.value === 'belowMin' && product.competitorBelowMin) ||
+			(statusFilter.value === 'belowMin' && product.status === 'enable' && product.competitorBelowMin) ||
 			(statusFilter.value === 'atMin' && isAtMinPrice(product)) ||
 			(statusFilter.value === 'favorite' &&
 				favorites.isFavorite(product.key)) ||
@@ -225,7 +272,7 @@ const priceSortOptions = computed(() => [
 ]);
 
 const statusFilters = computed(() => {
-	const counts = products.products.reduce(
+	const counts = storeProducts.value.reduce(
 		(acc, product) => {
 			acc[productViewStatus(product)] += 1;
 			acc.all += 1;
@@ -241,7 +288,7 @@ const statusFilters = computed(() => {
 		{
 			label: 'product.filters.favorite',
 			value: 'favorite' as const,
-			count: products.products.filter((product) =>
+			count: storeProducts.value.filter((product) =>
 				favorites.isFavorite(product.key),
 			).length,
 		},
@@ -264,20 +311,20 @@ const statusFilters = computed(() => {
 		{
 			label: 'product.filters.problem',
 			value: 'problem' as const,
-			count: products.products.filter(
+			count: storeProducts.value.filter(
 				(product) => product.status === 'enable' && !product.stores.length,
 			).length,
 		},
 		{
 			label: 'product.filters.belowMin',
 			value: 'belowMin' as const,
-			count: products.products.filter((product) => product.competitorBelowMin)
+			count: storeProducts.value.filter((product) => product.status === 'enable' && product.competitorBelowMin)
 				.length,
 		},
 		{
 			label: 'product.filters.atMin',
 			value: 'atMin' as const,
-			count: products.products.filter(isAtMinPrice).length,
+			count: storeProducts.value.filter(isAtMinPrice).length,
 		},
 	];
 });
@@ -310,7 +357,12 @@ onMounted(async () => {
 	});
 	syncScrollToTop();
 	favorites.initialize();
-	await loadProducts();
+	await Promise.all([loadProducts(), stores.getStores()]);
+	if (!Object.prototype.hasOwnProperty.call(route.query, 'storeId')) {
+		const initialStoreIds = rememberedStoreIds.value.length ? rememberedStoreIds.value
+			: storeOptions.value.length === 1 ? [storeOptions.value[0]!.value] : [];
+		if (initialStoreIds.length) await selectStores(initialStoreIds);
+	}
 });
 
 onBeforeUnmount(() => {
@@ -320,25 +372,37 @@ onBeforeUnmount(() => {
 
 <template>
 	<div ref="pageElement" class="size-full space-y-6">
-		<InfoBox>
-			<span class="block text-sm font-medium leading-5">
-				{{ $t('catalogUi.updated', { date: updatedLabel || '—' }) }}
-			</span>
-			<span class="mt-1 block text-xs leading-5 text-muted-foreground">
-				{{ $t('catalogUi.cacheHint') }}
-			</span>
-			<template #trailing>
-				<IconButton
-					variant="ghost"
-					:tooltip="$t('catalogUi.refresh')"
-					:aria-label="$t('catalogUi.refresh')"
-					:disabled="products.loading"
-					@click="refreshCatalog"
-				>
-					<RefreshCw :class="{ 'animate-spin': products.loading }" />
-				</IconButton>
-			</template>
-		</InfoBox>
+		<div v-if="storeOptions.length > 1" class="space-y-2">
+			<DropdownMenu v-model:open="storeMenuOpen" width="320px" height="360px" class="w-full sm:max-w-sm">
+				<template #trigger>
+					<button type="button" class="flex h-11 w-full items-center justify-between gap-2 rounded-xl border px-4 text-left disabled:opacity-50"
+						:disabled="disablingProducts" :aria-expanded="storeMenuOpen" :aria-label="$t('catalogUi.stores')">
+						<span class="truncate" :title="selectedStoreName">{{ selectedStoreName }}</span>
+						<ChevronDown class="size-5 shrink-0" />
+					</button>
+				</template>
+				<div class="space-y-1 p-1">
+					<button type="button" role="checkbox" :aria-checked="!selectedStoreIds.length" :disabled="disablingProducts"
+						class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left hover:bg-secondary disabled:opacity-50" @click="selectStores([])">
+						<span class="flex size-5 shrink-0 items-center justify-center rounded border"><Check v-if="!selectedStoreIds.length" class="size-4" /></span>
+						{{ $t('catalogUi.allStores') }}
+					</button>
+					<button v-for="store in storeOptions" :key="store.value" type="button" role="checkbox"
+						:aria-checked="selectedStoreIds.includes(store.value)" :disabled="disablingProducts"
+						class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left hover:bg-secondary disabled:opacity-50" @click="toggleStore(store.value)">
+						<span class="flex size-5 shrink-0 items-center justify-center rounded border"><Check v-if="selectedStoreIds.includes(store.value)" class="size-4" /></span>
+						<span class="min-w-0 break-words">{{ store.label }}</span>
+					</button>
+				</div>
+			</DropdownMenu>
+		</div>
+		<p v-else-if="storeOptions.length === 1" class="text-sm font-medium">
+			{{ $t('catalogUi.stores') }}: {{ selectedStoreName }}
+		</p>
+		<p v-if="selectedStoreIds.some(id => !storeOptions.some(option => option.value === id))" role="status" class="text-sm text-muted-foreground">
+			{{ $t('catalogUi.unavailableStore') }}
+			<button class="underline" @click="selectStores([])">{{ $t('catalogUi.allStores') }}</button>
+		</p>
 		<SwipeTabs
 			v-model="selectedTab"
 			:tabs="mainFilters.map((filter) => filter.label)"
@@ -451,7 +515,7 @@ onBeforeUnmount(() => {
 		<Empty
 			v-else
 			title="product.empty.title"
-			description="product.empty.description"
+			:description="selectedStoreIds.length ? 'catalogUi.emptyStore' : 'product.empty.description'"
 		/>
 
 		<Transition
