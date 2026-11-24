@@ -14,7 +14,7 @@ const rows = ref((props.data?.product?.cities ?? []).map(city => {
   return { ...city, configured: !!config, minPrice: config?.minPrice ?? null, maxPrice: config?.maxPrice ?? null };
 }));
 
-const allCities = ref(false);
+const allCities = ref(true);
 const sharedRange = ref({ minPrice: null as number | null, maxPrice: null as number | null });
 const priceRows = computed(() => allCities.value ? [sharedRange.value] : rows.value);
 

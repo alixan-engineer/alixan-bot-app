@@ -3,6 +3,7 @@ import {
 	ArrowUp,
 	Check,
 	ChevronDown,
+	RefreshCw,
 	SlidersHorizontal,
 	Search as SearchIcon,
 } from '@lucide/vue';
@@ -118,7 +119,7 @@ const confirmDisableProducts = (kind: 'removed' | 'belowMin' | 'atMin') => {
 		},
 	});
 };
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const drawer = useDrawer();
 const openSearch = () =>
 	drawer.open(ProductSearchDrawer, {
@@ -212,6 +213,15 @@ const confirmRefreshCatalog = () => {
 		},
 	});
 };
+
+const updatedLabel = computed(() =>
+	products.catalogUpdatedAt
+		? new Intl.DateTimeFormat(locale.value, {
+				dateStyle: 'short',
+				timeStyle: 'short',
+		  }).format(new Date(products.catalogUpdatedAt))
+		: '',
+);
 
 const productViewStatus = (
 	product: (typeof products.products)[number],
@@ -370,6 +380,25 @@ onBeforeUnmount(() => {
 
 <template>
 	<div ref="pageElement" class="size-full space-y-6">
+		<InfoBox>
+			<span class="block text-sm font-medium leading-5">
+				{{ $t('catalogUi.updated', { date: updatedLabel || '—' }) }}
+			</span>
+			<span class="mt-1 block text-xs leading-5 text-muted-foreground">
+				{{ $t('catalogUi.cacheHint') }}
+			</span>
+			<template #trailing>
+				<IconButton
+					variant="ghost"
+					:tooltip="$t('catalogUi.refresh')"
+					:aria-label="$t('catalogUi.refresh')"
+					:disabled="products.loading"
+					@click="confirmRefreshCatalog"
+				>
+					<RefreshCw :class="{ 'animate-spin': products.loading }" />
+				</IconButton>
+			</template>
+		</InfoBox>
 		<div v-if="storeOptions.length > 1" class="space-y-2">
 			<DropdownMenu v-model:open="storeMenuOpen" width="320px" height="360px" class="w-full sm:max-w-sm">
 				<template #trigger>
